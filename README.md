@@ -10,6 +10,8 @@ right for the selected zone — current temperature ring, setpoint stepper, Off 
 Auto mode, the device's heating schedule (heatmap + preset switch), room/floor sensors,
 daily heating %, and the backlight toggle.
 
+![PapaDog's Themo Control Card — desktop layout](docs/preview.png)
+
 > **Requires the [`pd_hathemo`](https://github.com/jnaatanen/pd-hathemo) integration.**
 > Install and configure that first. This card only *visualizes and controls* the
 > entities that integration exposes (`climate.*`, the temperature sensors, the heating
