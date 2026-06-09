@@ -1,0 +1,33 @@
+# PapaDog's Themo Control Card — copy-paste examples.
+#
+# IMPORTANT: this is a wide two-column card. Put it in a **Panel** view (or any
+# full-width slot) so the overview and detail sit side by side. In the default
+# masonry view a card is capped to ~480px, so the columns stack vertically.
+# (Edit dashboard → view settings → View type: Panel.)
+
+# 1. Minimal — auto-discovers every pd_hathemo thermostat.
+type: custom:themo-card
+title: Themo Heating
+
+# ---------------------------------------------------------------------------
+# 2. Explicit thermostat list / order (otherwise auto-discovered).
+# type: custom:themo-card
+# title: Themo Heating
+# entities:
+#   - climate.themo_living_room
+#   - climate.themo_kitchen
+#   - climate.themo_bedroom
+# default_zone: climate.themo_living_room   # which zone the detail panel opens on
+
+# ---------------------------------------------------------------------------
+# 3. Full options.
+# type: custom:themo-card
+# title: Themo Heating
+# step: 0.5                                  # setpoint +/- step (default 0.5)
+# sun_entity: sun.sun                        # adds a Sunrise → Sunset stat
+# energy:
+#   today_entity: sensor.themo_energy_today  # kWh glance card (a user sensor/template)
+# quick_actions:                             # chips that call your scripts/services
+#   - { name: "Boost +2° 1h", icon: mdi:flash, service: script.themo_boost }
+#   - { name: "Away 17°",     icon: mdi:home-export-outline, service: script.themo_away }
+#   - { name: "Resume",       icon: mdi:calendar-refresh,    service: script.themo_resume }

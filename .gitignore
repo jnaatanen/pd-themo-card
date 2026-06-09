@@ -1,0 +1,16 @@
+# Build deps / output
+node_modules/
+dist/
+
+# Local development, tests, and internal docs — intentionally kept out of the public repo
+test/
+docs/
+.dev-local/
+vitest.config.ts
+
+# OS / editor
+.DS_Store
+Thumbs.db
+*.swp
+.vscode/
+.idea/
