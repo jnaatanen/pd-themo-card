@@ -98,7 +98,7 @@ thermostat and shows the first one in the detail panel.
 | `step` | `0.5` | Setpoint +/- step. The thermostat's own `target_temp_step` is used when available. |
 | `sun_entity` | *(off)* | A `sun.*` entity. When set, adds a **Sunrise → Sunset** stat to the strip. |
 | `energy.today_entity` | *(off)* | A kWh sensor (your own template/utility-meter sensor) shown as a daily-energy glance card. |
-| `energy.cost_entity`, `energy.spot_entity` | *(reserved)* | Accepted for forward-compatibility; cost/spot pricing is external data and not rendered yet. |
+| `energy.cost_entity`, `energy.spot_entity` | *(off)* | Cost and spot-price sensors (external pricing data); shown in the tablet layout's footer stats when set. |
 | `quick_actions` | `[]` | Chips that call a service. Each: `{ name, icon?, service, service_data? }` (e.g. point at your own `script.*`). |
 
 ## How it finds your thermostats
