@@ -12,6 +12,11 @@ daily heating %, and the backlight toggle.
 
 <img src="docs/preview.png?v=2" alt="PapaDog's Themo Control Card — desktop layout">
 
+<p>
+  <img src="docs/preview-mobile.png?v=1" width="280" alt="PapaDog's Themo Control Card — mobile layout">
+</p>
+<sub>The card switches automatically: two-column desktop view in wide slots, the mobile view in narrow slots (see the <a href="#configuration">layout</a> option).</sub>
+
 
 > **Requires the [`pd_hathemo`](https://github.com/jnaatanen/pd-hathemo) integration.**
 > Install and configure that first. This card only *visualizes and controls* the
@@ -52,16 +57,17 @@ Use it entirely at your own risk. See [LICENSE](LICENSE) for the full terms.
 
 ## Dashboard layout — use a Panel view
 
-This is a **wide two-column card** (overview + detail side by side, ~1440px). Home
-Assistant's default *masonry* view caps every card at roughly one column (~480px), which
-trips the card's responsive breakpoint and **stacks the two columns vertically**.
+The desktop layout is a **wide two-column card** (overview + detail side by side, ~1440px).
+Home Assistant's default *masonry* view caps every card at roughly one column (~480px) —
+in such narrow slots the card automatically renders its **mobile layout** instead (header
+card, zone list, bottom-sheet detail).
 
 To get the side-by-side desktop layout, put the card in a full-width slot:
 
 - **Edit dashboard → the view's settings (pencil) → View type: _Panel (1 card)_.**
 
-The card is responsive by design: in a narrow slot (phone, narrow column) it stacks
-cleanly; in a wide slot it goes two-column.
+The switch is automatic at ~1100px of card width, and can be forced with the `layout`
+option (`auto` | `desktop` | `mobile`).
 
 ## Configuration
 
@@ -86,6 +92,7 @@ thermostat and shows the first one in the detail panel.
 | Option | Default | Notes |
 | --- | --- | --- |
 | `title` | `Themo Heating` | Card heading. |
+| `layout` | `auto` | `auto` switches by card width (≥1100px desktop, narrower mobile); `desktop` / `mobile` force a layout. |
 | `entities` | *(auto)* | Explicit list of `climate.*` thermostats and their order. When omitted, the card auto-discovers every thermostat from the `pd_hathemo` platform. |
 | `default_zone` | first zone | Which `climate.*` the detail panel opens on initially. |
 | `step` | `0.5` | Setpoint +/- step. The thermostat's own `target_temp_step` is used when available. |
@@ -119,11 +126,12 @@ The `pd_hathemo` integration names entities after each thermostat's device. The 
   of the active schedule (Home / Away / …) via climate presets.
 - **Optional sections** — Sunrise → Sunset, a daily-energy glance, and quick-action chips
   appear only when you configure their source.
-- **Responsive** — two-column on a wide (Panel) view, single column when narrow.
+- **Two layouts in one card** — the full two-column desktop view in wide (Panel) slots, and
+  a phone-optimized view (header card, zone list, bottom-sheet zone detail) in narrow slots,
+  switching automatically.
 
 ## Roadmap / Backlog
 
-- **Mobile dashboard layout** — a phone-optimized card surface.
 - **Tablet dashboard layout** — a tablet-optimized card surface.
 - Graphical (GUI) card config editor.
 - Schedule setpoint editing (the integration is currently read-only for the weekly grid).

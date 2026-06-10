@@ -6,6 +6,7 @@ dist/
 test/
 docs/*
 !docs/preview.png
+!docs/preview-mobile.png
 .dev-local/
 vitest.config.ts
 
