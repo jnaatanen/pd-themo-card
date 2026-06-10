@@ -143,7 +143,7 @@ export class ThemoCard extends LitElement {
           @zone-open=${(e: CustomEvent) => this.onZoneOpen((e.detail as { entityId: string }).entityId)}
           @quick-action=${(e: CustomEvent) => runQuickAction(this._hass, (e.detail as { action: Parameters<typeof runQuickAction>[1] }).action)}
         ></themo-mobile-view>
-        ${this.sheetOpen && sel ? html`<themo-mobile-sheet
+        ${this.sheetOpen && sel && (this.selectedId === null || sel.climateEntityId === this.selectedId) ? html`<themo-mobile-sheet
           .zone=${sel} .nextChangeText=${ncText}
           @sheet-close=${() => { this.sheetOpen = false; }}
           @setpoint-change=${(e: CustomEvent) => setTemperature(this._hass, sel.climateEntityId, (e.detail as { temperature: number }).temperature)}
