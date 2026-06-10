@@ -140,7 +140,6 @@ The `pd_hathemo` integration names entities after each thermostat's device. The 
 
 - [`pd_hathemo`](https://github.com/jnaatanen/pd-hathemo) integration — the data source
   this card depends on.
-- Design exploration by Open Design.
 
 ## License
 
