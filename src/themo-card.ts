@@ -11,22 +11,26 @@ import type { CardConfig, ScheduleData, ZoneViewModel } from './model/types';
 import './components/overview';
 import './components/detail';
 import './components/glance';
+import './components/mobile-view';
+import './components/mobile-sheet';
 
 @customElement('themo-card')
 export class ThemoCard extends LitElement {
   static styles = [tokens, css`
+    :host { display: block; }
     .view { display:grid; grid-template-columns: 1fr 460px; gap:24px; padding:8px; }
     .right-col { display:flex; flex-direction:column; gap:18px; }
-    @container (max-width: 1100px) { .view { grid-template-columns: 1fr; } }
-    :host { container-type: inline-size; }
   `];
 
   @state() private config!: CardConfig;
   @state() private selectedId: string | null = null;
   @state() private scheduleData: ScheduleData | null = null;
+  @state() private narrow = false;
+  @state() private sheetOpen = false;
   private _hass!: HomeAssistant;
   private schedules = new ScheduleService();
   private lastFetchedDeviceId: number | null = null;
+  private resizeObserver?: ResizeObserver;
 
   setConfig(raw: unknown) { this.config = parseConfig(raw as Parameters<typeof parseConfig>[0]); }
   getCardSize() { return 12; }
@@ -37,6 +41,27 @@ export class ThemoCard extends LitElement {
     this.maybeFetchSchedule();
   }
   get hass() { return this._hass; }
+
+  connectedCallback() {
+    super.connectedCallback();
+    if (typeof ResizeObserver !== 'undefined') {
+      this.resizeObserver = new ResizeObserver((entries) => {
+        const width = entries[0]?.contentRect.width ?? 0;
+        this.narrow = width > 0 && width < 1100;
+      });
+      this.resizeObserver.observe(this);
+    }
+  }
+
+  disconnectedCallback() {
+    this.resizeObserver?.disconnect();
+    super.disconnectedCallback();
+  }
+
+  private effectiveLayout(): 'desktop' | 'mobile' {
+    if (this.config.layout === 'desktop' || this.config.layout === 'mobile') return this.config.layout;
+    return this.narrow ? 'mobile' : 'desktop';
+  }
 
   private zones(): ZoneViewModel[] {
     if (!this._hass || !this.config) return [];
@@ -83,6 +108,19 @@ export class ThemoCard extends LitElement {
     return html`<themo-glance .value=${st.state} .unit=${(st.attributes as Record<string, string>).unit_of_measurement ?? 'kWh'} .sub=${'today · all zones'}></themo-glance>`;
   }
 
+  private energyValue(entityId: string | undefined): string | null {
+    if (!entityId) return null;
+    const st = this._hass.states[entityId];
+    if (!st || st.state === 'unknown' || st.state === 'unavailable') return null;
+    const unit = (st.attributes as Record<string, string>).unit_of_measurement;
+    return unit && entityId === this.config.energy?.cost_entity ? `${st.state} ${unit}` : st.state;
+  }
+
+  private onZoneOpen(entityId: string) {
+    this.onSelect(entityId);
+    this.sheetOpen = true;
+  }
+
   render() {
     if (!this.config || !this._hass) return html``;
     const zones = this.zones();
@@ -93,13 +131,33 @@ export class ThemoCard extends LitElement {
     const nowHour = new Date().getHours();
     const row = sched ? todayRow(sched, day) : null;
     const nc = sched ? nextChange(sched, day, nowHour) : null;
+    const outsideText = outside !== null ? `${outside}°C` : null;
+
+    if (this.effectiveLayout() === 'mobile') {
+      const ncText = nc ? `${String(nc.hour).padStart(2, '0')}:00 → ${nc.value}°` : null;
+      return html`
+        <themo-mobile-view
+          .zones=${zones} .quickActions=${this.config.quick_actions} .outsideText=${outsideText}
+          .energyToday=${this.energyValue(this.config.energy?.today_entity)}
+          .energyCost=${this.energyValue(this.config.energy?.cost_entity)}
+          @zone-open=${(e: CustomEvent) => this.onZoneOpen((e.detail as { entityId: string }).entityId)}
+          @quick-action=${(e: CustomEvent) => runQuickAction(this._hass, (e.detail as { action: Parameters<typeof runQuickAction>[1] }).action)}
+        ></themo-mobile-view>
+        ${this.sheetOpen && sel ? html`<themo-mobile-sheet
+          .zone=${sel} .nextChangeText=${ncText}
+          @sheet-close=${() => { this.sheetOpen = false; }}
+          @setpoint-change=${(e: CustomEvent) => setTemperature(this._hass, sel.climateEntityId, (e.detail as { temperature: number }).temperature)}
+          @mode-change=${(e: CustomEvent) => setMode(this._hass, sel.climateEntityId, (e.detail as { mode: Parameters<typeof setMode>[2] }).mode)}
+          @backlight-toggle=${() => sel.backlightEntityId && toggleBacklight(this._hass, sel.backlightEntityId, sel.backlightOn ?? false)}
+        ></themo-mobile-sheet>` : ''}`;
+    }
 
     return html`
       <div class="view">
         <themo-overview
           .zones=${zones} .selectedId=${sel?.climateEntityId ?? ''} .title=${this.config.title}
           .quickActions=${this.config.quick_actions}
-          .outsideText=${outside !== null ? `${outside}°C` : null}
+          .outsideText=${outsideText}
           .sunText=${this.sunText()}
           @zone-select=${(e: CustomEvent) => this.onSelect((e.detail as { entityId: string }).entityId)}
           @quick-action=${(e: CustomEvent) => runQuickAction(this._hass, (e.detail as { action: Parameters<typeof runQuickAction>[1] }).action)}
