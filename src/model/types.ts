@@ -1,10 +1,11 @@
 export type ThemoMode = 'off' | 'heat' | 'auto';
 
-export type CardLayout = 'auto' | 'desktop' | 'mobile';
+export type CardLayout = 'auto' | 'desktop' | 'tablet' | 'mobile';
 
 export interface QuickAction {
   name: string;
   icon?: string;
+  description?: string;            // optional sub-line (shown on the tablet buttons)
   service: string;                 // e.g. "script.themo_boost"
   service_data?: Record<string, unknown>;
 }

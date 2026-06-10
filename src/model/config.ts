@@ -17,8 +17,8 @@ export function parseConfig(raw: Partial<CardConfig> & { type: string }): CardCo
   }
   const quick_actions: QuickAction[] = raw.quick_actions ?? [];
   const layout: CardLayout = raw.layout ?? 'auto';
-  if (layout !== 'auto' && layout !== 'desktop' && layout !== 'mobile') {
-    throw new Error("themo-card: 'layout' must be auto, desktop, or mobile");
+  if (layout !== 'auto' && layout !== 'desktop' && layout !== 'tablet' && layout !== 'mobile') {
+    throw new Error("themo-card: 'layout' must be auto, desktop, tablet, or mobile");
   }
   return {
     type: raw.type,
