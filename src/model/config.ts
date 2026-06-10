@@ -1,4 +1,4 @@
-import type { CardConfig, QuickAction } from './types';
+import type { CardConfig, CardLayout, QuickAction } from './types';
 
 export function parseConfig(raw: Partial<CardConfig> & { type: string }): CardConfig {
   if (raw.entities !== undefined) {
@@ -16,6 +16,10 @@ export function parseConfig(raw: Partial<CardConfig> & { type: string }): CardCo
     throw new Error("themo-card: 'step' must be a positive number");
   }
   const quick_actions: QuickAction[] = raw.quick_actions ?? [];
+  const layout: CardLayout = raw.layout ?? 'auto';
+  if (layout !== 'auto' && layout !== 'desktop' && layout !== 'mobile') {
+    throw new Error("themo-card: 'layout' must be auto, desktop, or mobile");
+  }
   return {
     type: raw.type,
     title: raw.title ?? 'Themo Heating',
@@ -25,5 +29,6 @@ export function parseConfig(raw: Partial<CardConfig> & { type: string }): CardCo
     sun_entity: raw.sun_entity,
     energy: raw.energy,
     quick_actions,
+    layout,
   };
 }

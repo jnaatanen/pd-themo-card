@@ -1,5 +1,7 @@
 export type ThemoMode = 'off' | 'heat' | 'auto';
 
+export type CardLayout = 'auto' | 'desktop' | 'mobile';
+
 export interface QuickAction {
   name: string;
   icon?: string;
@@ -22,6 +24,7 @@ export interface CardConfig {
   sun_entity?: string;
   energy?: EnergyConfig;
   quick_actions: QuickAction[];    // default []
+  layout: CardLayout;              // default 'auto'
 }
 
 export interface ZoneViewModel {
