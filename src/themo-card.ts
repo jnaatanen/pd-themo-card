@@ -13,6 +13,7 @@ import './components/detail';
 import './components/glance';
 import './components/mobile-view';
 import './components/mobile-sheet';
+import './components/tablet-view';
 
 @customElement('themo-card')
 export class ThemoCard extends LitElement {
@@ -25,7 +26,7 @@ export class ThemoCard extends LitElement {
   @state() private config!: CardConfig;
   @state() private selectedId: string | null = null;
   @state() private scheduleData: ScheduleData | null = null;
-  @state() private narrow = false;
+  @state() private band: 'mobile' | 'tablet' | 'desktop' = 'desktop';
   @state() private sheetOpen = false;
   private _hass!: HomeAssistant;
   private schedules = new ScheduleService();
@@ -47,7 +48,10 @@ export class ThemoCard extends LitElement {
     if (typeof ResizeObserver !== 'undefined') {
       this.resizeObserver = new ResizeObserver((entries) => {
         const width = entries[0]?.contentRect.width ?? 0;
-        this.narrow = width > 0 && width < 1100;
+        this.band = width <= 0 ? 'desktop'
+          : width < 600 ? 'mobile'
+          : width < 1100 ? 'tablet'
+          : 'desktop';
       });
       this.resizeObserver.observe(this);
     }
@@ -58,9 +62,9 @@ export class ThemoCard extends LitElement {
     super.disconnectedCallback();
   }
 
-  private effectiveLayout(): 'desktop' | 'mobile' {
-    if (this.config.layout === 'desktop' || this.config.layout === 'mobile') return this.config.layout;
-    return this.narrow ? 'mobile' : 'desktop';
+  private effectiveLayout(): 'desktop' | 'tablet' | 'mobile' {
+    if (this.config.layout !== 'auto') return this.config.layout;
+    return this.band;
   }
 
   private zones(): ZoneViewModel[] {
@@ -150,6 +154,22 @@ export class ThemoCard extends LitElement {
           @mode-change=${(e: CustomEvent) => setMode(this._hass, sel.climateEntityId, (e.detail as { mode: Parameters<typeof setMode>[2] }).mode)}
           @backlight-toggle=${() => sel.backlightEntityId && toggleBacklight(this._hass, sel.backlightEntityId, sel.backlightOn ?? false)}
         ></themo-mobile-sheet>` : ''}`;
+    }
+
+    if (this.effectiveLayout() === 'tablet') {
+      return html`
+        <themo-tablet-view
+          .zones=${zones} .selectedId=${sel?.climateEntityId ?? ''}
+          .quickActions=${this.config.quick_actions} .outsideText=${outsideText}
+          .energyToday=${this.energyValue(this.config.energy?.today_entity)}
+          .energyCost=${this.energyValue(this.config.energy?.cost_entity)}
+          .energySpot=${this.energyValue(this.config.energy?.spot_entity)}
+          @zone-select=${(e: CustomEvent) => this.onSelect((e.detail as { entityId: string }).entityId)}
+          @quick-action=${(e: CustomEvent) => runQuickAction(this._hass, (e.detail as { action: Parameters<typeof runQuickAction>[1] }).action)}
+          @setpoint-change=${(e: CustomEvent) => sel && setTemperature(this._hass, sel.climateEntityId, (e.detail as { temperature: number }).temperature)}
+          @mode-change=${(e: CustomEvent) => sel && setMode(this._hass, sel.climateEntityId, (e.detail as { mode: Parameters<typeof setMode>[2] }).mode)}
+          @preset-change=${(e: CustomEvent) => sel && this.onPreset(sel, (e.detail as { preset: string }).preset)}
+        ></themo-tablet-view>`;
     }
 
     return html`
