@@ -66,8 +66,9 @@ To get the side-by-side desktop layout, put the card in a full-width slot:
 
 - **Edit dashboard → the view's settings (pencil) → View type: _Panel (1 card)_.**
 
-The switch is automatic at ~1100px of card width, and can be forced with the `layout`
-option (`auto` | `desktop` | `mobile`).
+The switch is automatic by card width — mobile below 600px, the **tablet / wall-panel
+layout** at 600–1099px, desktop at 1100px and up — and can be forced with the `layout`
+option (`auto` | `desktop` | `tablet` | `mobile`).
 
 ## Configuration
 
@@ -92,14 +93,14 @@ thermostat and shows the first one in the detail panel.
 | Option | Default | Notes |
 | --- | --- | --- |
 | `title` | `Themo Heating` | Card heading. |
-| `layout` | `auto` | `auto` switches by card width (≥1100px desktop, narrower mobile); `desktop` / `mobile` force a layout. |
+| `layout` | `auto` | `auto` switches by card width: <600px mobile, 600–1099px tablet, ≥1100px desktop. `desktop` / `tablet` / `mobile` force a layout. |
 | `entities` | *(auto)* | Explicit list of `climate.*` thermostats and their order. When omitted, the card auto-discovers every thermostat from the `pd_hathemo` platform. |
 | `default_zone` | first zone | Which `climate.*` the detail panel opens on initially. |
 | `step` | `0.5` | Setpoint +/- step. The thermostat's own `target_temp_step` is used when available. |
 | `sun_entity` | *(off)* | A `sun.*` entity. When set, adds a **Sunrise → Sunset** stat to the strip. |
 | `energy.today_entity` | *(off)* | A kWh sensor (your own template/utility-meter sensor) shown as a daily-energy glance card. |
 | `energy.cost_entity`, `energy.spot_entity` | *(off)* | Cost and spot-price sensors (external pricing data); shown in the tablet layout's footer stats when set. |
-| `quick_actions` | `[]` | Chips that call a service. Each: `{ name, icon?, service, service_data? }` (e.g. point at your own `script.*`). |
+| `quick_actions` | `[]` | Buttons/chips that call a service. Each: `{ name, icon?, description?, service, service_data? }` (e.g. point at your own `script.*`). `description` shows as a sub-line on the tablet layout's House actions buttons. |
 
 ## How it finds your thermostats
 
@@ -126,13 +127,13 @@ The `pd_hathemo` integration names entities after each thermostat's device. The 
   of the active schedule (Home / Away / …) via climate presets.
 - **Optional sections** — Sunrise → Sunset, a daily-energy glance, and quick-action chips
   appear only when you configure their source.
-- **Two layouts in one card** — the full two-column desktop view in wide (Panel) slots, and
-  a phone-optimized view (header card, zone list, bottom-sheet zone detail) in narrow slots,
-  switching automatically.
+- **Three layouts in one card** — the full two-column desktop view in wide (Panel) slots,
+  a touch-first tablet / wall-panel view (large zone tiles, glance top bar, focus rail with
+  House actions) in mid-width slots, and a phone-optimized view (header card, zone list,
+  bottom-sheet zone detail) in narrow slots — switching automatically.
 
 ## Roadmap / Backlog
 
-- **Tablet dashboard layout** — a tablet-optimized card surface.
 - Graphical (GUI) card config editor.
 - Schedule setpoint editing (the integration is currently read-only for the weekly grid).
 
