@@ -10,7 +10,7 @@ right for the selected zone — current temperature ring, setpoint stepper, Off 
 Auto mode, the device's heating schedule (heatmap + preset switch), room/floor sensors,
 daily heating %, and the backlight toggle.
 
-<img src="docs/preview.png?v=2" alt="PapaDog's Themo Control Card — desktop layout">
+<img src="docs/preview.png?v=3" alt="PapaDog's Themo Control Card — desktop layout">
 
 <p>
   <img src="docs/preview-mobile.png?v=1" width="280" alt="PapaDog's Themo Control Card — mobile layout">
