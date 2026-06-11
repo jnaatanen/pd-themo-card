@@ -19,7 +19,12 @@ const IC_OFF    = svg`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
 
 @customElement('themo-zone-row')
 export class ThemoZoneRow extends LitElement {
-  static styles = [tokens, mobile, css`:host{display:block;}`];
+  static styles = [tokens, mobile, css`
+    :host{display:block;}
+    .auto-a { color: var(--ok); font-weight: 600; }
+    .meta .st-heat { color: var(--heat); }
+    .meta .pct { color: var(--fg-soft); }
+  `];
   @property({ attribute: false }) zone!: ZoneViewModel;
 
   private icon() {
@@ -43,9 +48,12 @@ export class ThemoZoneRow extends LitElement {
         <div class="ic">${this.icon()}</div>
         <div>
           <div class="name">${z.name}</div>
-          <div class="meta">${zoneMeta(z)}</div>
+          <div class="meta">${z.heating
+            ? html`<span class="st-heat">heating</span>${z.heatingTodayPct !== null ? html` · <span class="pct">${z.heatingTodayPct}% today</span>` : ''}`
+            : zoneMeta(z)}</div>
         </div>
-        <div class="now">${z.currentTemp ?? '—'}<span class="u">°</span><span class="tgt">→ ${z.targetTemp !== null ? `${z.targetTemp}°` : '—'}</span></div>
+        <div class="now">${z.currentTemp ?? '—'}<span class="u">°</span><span class="tgt">→ ${z.targetTemp !== null ? html`${z.targetTemp}°`
+          : z.mode === 'auto' ? html`<span class="auto-a">A</span>` : '—'}</span></div>
         <div class="mp"></div>
       </div>`;
   }

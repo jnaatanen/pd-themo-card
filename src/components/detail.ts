@@ -13,7 +13,7 @@ const MODES: { mode: ThemoMode; name: string; desc: string }[] = [
 
 @customElement('themo-detail')
 export class ThemoDetail extends LitElement {
-  static styles = [tokens, shared, css`:host{display:block;}`];
+  static styles = [tokens, shared, css`:host{display:block;} .auto-a { color: var(--ok); font-weight: 600; }`];
   @property({ attribute: false }) zone!: ZoneViewModel;
   @property({ attribute: false }) todayRow: (number | null)[] | null = null;
   @property({ attribute: false }) nextChange: NextChange | null = null;
@@ -61,7 +61,8 @@ export class ThemoDetail extends LitElement {
               <div class="label">Setpoint</div>
               <div class="stepper">
                 <button data-step-dn @click=${() => this.bump(-z.step)} ?disabled=${z.mode !== 'heat'}>−</button>
-                <div class="val"><span>${z.targetTemp ?? '—'}</span><span class="unit">°C</span></div>
+                <div class="val">${z.targetTemp !== null ? html`<span>${z.targetTemp}</span><span class="unit">°C</span>`
+                  : z.mode === 'auto' ? html`<span class="auto-a">A</span>` : html`<span>—</span><span class="unit">°C</span>`}</div>
                 <button data-step-up @click=${() => this.bump(z.step)} ?disabled=${z.mode !== 'heat'}>+</button>
               </div>
             </div>

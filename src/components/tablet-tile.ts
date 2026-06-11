@@ -17,7 +17,12 @@ export function deltaParts(current: number | null, target: number | null):
 
 @customElement('themo-tablet-tile')
 export class ThemoTabletTile extends LitElement {
-  static styles = [tokens, tablet, css`:host{display:block;min-height:0;} .ztile{height:100%;}`];
+  static styles = [tokens, tablet, css`
+    :host{display:block;min-height:0;} .ztile{height:100%;}
+    .auto-a { color: var(--ok); font-weight: 600; }
+    .meta-line .st-heat { color: var(--heat); }
+    .meta-line .pct { color: var(--fg-soft); }
+  `];
   @property({ attribute: false }) zone!: ZoneViewModel;
   @property({ type: Boolean }) selected = false;
 
@@ -46,8 +51,11 @@ export class ThemoTabletTile extends LitElement {
             <div class="u">°C</div>
             ${delta ? html`<div class="delta ${delta.cool ? 'cool' : ''}">${delta.text}</div>` : ''}
           </div>
-          <div class="target-line">→ <span class="target">${z.targetTemp !== null ? `${z.targetTemp}°` : '—'}</span>${z.targetTemp !== null ? ' setpoint' : ''}</div>
-          <div class="meta-line">${zoneMeta(z)}</div>
+          <div class="target-line">→ <span class="target">${z.targetTemp !== null ? html`${z.targetTemp}°`
+            : z.mode === 'auto' ? html`<span class="auto-a">A</span>` : '—'}</span>${z.targetTemp !== null ? ' setpoint' : ''}</div>
+          <div class="meta-line">${z.heating
+            ? html`<span class="st-heat">heating</span>${z.heatingTodayPct !== null ? html` · <span class="pct">${z.heatingTodayPct}% today</span>` : ''}`
+            : zoneMeta(z)}</div>
         </div>
       </div>`;
   }

@@ -26,6 +26,7 @@ export class ThemoTabletFocus extends LitElement {
       color: var(--fg-soft); font-size: 12px; font-family: inherit; cursor: pointer;
     }
     .pchip.active { background: rgba(3,169,244,0.12); border-color: rgba(3,169,244,0.5); color: var(--accent); }
+    .auto-a { color: var(--ok); font-weight: 600; }
   `];
   @property({ attribute: false }) zone!: ZoneViewModel;
 
@@ -59,7 +60,8 @@ export class ThemoTabletFocus extends LitElement {
         </div>
         <div class="stepper">
           <button data-step-dn @click=${() => this.bump(-z.step)} ?disabled=${z.mode !== 'heat'}>−</button>
-          <div class="val">${z.targetTemp ?? '—'}<span class="u">°C</span></div>
+          <div class="val">${z.targetTemp !== null ? html`${z.targetTemp}<span class="u">°C</span>`
+            : z.mode === 'auto' ? html`<span class="auto-a">A</span>` : html`—<span class="u">°C</span>`}</div>
           <button data-step-up @click=${() => this.bump(z.step)} ?disabled=${z.mode !== 'heat'}>+</button>
         </div>
         <div class="mode-row">

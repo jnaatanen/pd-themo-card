@@ -16,7 +16,7 @@ const MODES: { mode: ThemoMode; name: string; icon: ReturnType<typeof svg> }[] =
 
 @customElement('themo-mobile-sheet')
 export class ThemoMobileSheet extends LitElement {
-  static styles = [tokens, mobile, css`:host{display:contents;}`];
+  static styles = [tokens, mobile, css`:host{display:contents;} .auto-a { color: var(--ok); font-weight: 600; }`];
   @property({ attribute: false }) zone!: ZoneViewModel;
   @property() nextChangeText: string | null = null;
 
@@ -59,7 +59,8 @@ export class ThemoMobileSheet extends LitElement {
               <div class="lbl">Setpoint</div>
               <div class="stepper">
                 <button data-step-dn @click=${() => this.bump(-z.step)} ?disabled=${z.mode !== 'heat'}>−</button>
-                <div class="val">${z.targetTemp ?? '—'}<span class="u">°C</span></div>
+                <div class="val">${z.targetTemp !== null ? html`${z.targetTemp}<span class="u">°C</span>`
+                  : z.mode === 'auto' ? html`<span class="auto-a">A</span>` : html`—<span class="u">°C</span>`}</div>
                 <button data-step-up @click=${() => this.bump(z.step)} ?disabled=${z.mode !== 'heat'}>+</button>
               </div>
             </div>
