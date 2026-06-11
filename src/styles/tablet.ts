@@ -188,13 +188,13 @@ export const tablet = css`
     gap: 20px;
   }
 
-  .rail .focus-card {
+  .focus-card {
     border: 1px solid var(--border);
     background: var(--surface);
     border-radius: 14px;
     padding: 18px;
   }
-  .rail .focus-card .label {
+  .focus-card .label {
     font-family: var(--font-mono);
     font-size: 10px;
     letter-spacing: 0.18em;
@@ -202,30 +202,30 @@ export const tablet = css`
     color: var(--muted);
     margin-bottom: 6px;
   }
-  .rail .focus-card .name {
+  .focus-card .name {
     font-size: 22px;
     font-weight: 500;
     letter-spacing: -0.01em;
     margin-bottom: 16px;
   }
-  .rail .focus-card .ring-wrap {
+  .focus-card .ring-wrap {
     display: grid; place-items: center;
     margin-bottom: 14px;
     position: relative;
   }
-  .rail .focus-card svg.ring { width: 180px; height: 180px; }
-  .rail .focus-card .ring-num {
+  .focus-card svg.ring { width: 180px; height: 180px; }
+  .focus-card .ring-num {
     position: absolute; inset: 0;
     display: grid; place-items: center;
   }
-  .rail .focus-card .ring-num .big {
+  .focus-card .ring-num .big {
     font-size: 44px;
     font-weight: 200;
     letter-spacing: -0.04em;
     line-height: 1;
   }
-  .rail .focus-card .ring-num .big .u { font-size: 16px; color: var(--muted); }
-  .rail .focus-card .ring-num .cap {
+  .focus-card .ring-num .big .u { font-size: 16px; color: var(--muted); }
+  .focus-card .ring-num .cap {
     font-family: var(--font-mono);
     font-size: 9px;
     letter-spacing: 0.18em;
@@ -258,13 +258,13 @@ export const tablet = css`
   }
   .stepper .val .u { font-size: 11px; color: var(--muted); margin-left: 2px; }
 
-  .rail .mode-row {
+  .mode-row {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
     gap: 6px;
     margin-top: 12px;
   }
-  .rail .mode-tile {
+  .mode-tile {
     border: 1px solid var(--border-2);
     background: var(--surface-2);
     border-radius: 10px;
@@ -274,34 +274,34 @@ export const tablet = css`
     cursor: pointer;
     color: var(--fg-soft);
   }
-  .rail .mode-tile.selected {
+  .mode-tile.selected {
     background: rgba(255,112,67,0.12);
     border-color: rgba(255,112,67,0.5);
     color: var(--heat);
   }
-  .rail .mode-tile svg { width: 18px; height: 18px; }
-  .rail .mode-tile .name {
+  .mode-tile svg { width: 18px; height: 18px; }
+  .mode-tile .name {
     font-family: var(--font-mono);
     font-size: 10px;
     letter-spacing: 0.1em;
     text-transform: uppercase;
   }
 
-  .rail .qa-stack {
+  .qa-stack {
     display: flex; flex-direction: column; gap: 8px;
   }
-  .rail .qa-label {
+  .qa-label {
     font-family: var(--font-mono);
     font-size: 10px;
     letter-spacing: 0.18em;
     text-transform: uppercase;
     color: var(--muted);
   }
-  .rail .qa-row {
+  .qa-row {
     display: grid; grid-template-columns: 1fr 1fr;
     gap: 8px;
   }
-  .rail .qa-btn {
+  .qa-btn {
     background: var(--surface);
     border: 1px solid var(--border-2);
     border-radius: 12px;
@@ -313,30 +313,30 @@ export const tablet = css`
     font-family: inherit;
     transition: background .12s, color .12s, border-color .12s;
   }
-  .rail .qa-btn:hover {
+  .qa-btn:hover {
     background: var(--surface-3);
     border-color: var(--accent);
     color: var(--fg);
   }
-  .rail .qa-btn.active {
+  .qa-btn.active {
     background: rgba(255,112,67,0.12);
     border-color: rgba(255,112,67,0.5);
     color: var(--heat);
   }
-  .rail .qa-btn .lbl-row {
+  .qa-btn .lbl-row {
     display: flex; align-items: center; gap: 8px;
     font-size: 13px; font-weight: 500;
   }
-  .rail .qa-btn .lbl-row svg { width: 16px; height: 16px; }
-  .rail .qa-btn .sub {
+  .qa-btn .lbl-row svg { width: 16px; height: 16px; }
+  .qa-btn .sub {
     font-family: var(--font-mono);
     font-size: 10px;
     color: var(--muted);
     letter-spacing: 0.06em;
   }
-  .rail .qa-btn.active .sub { color: rgba(255,112,67,0.7); }
-  .rail .qa-btn.wide { grid-column: 1 / -1; flex-direction: row; align-items: center; justify-content: space-between; }
-  .rail .qa-btn.wide .lbl-row { font-size: 12px; }
+  .qa-btn.active .sub { color: rgba(255,112,67,0.7); }
+  .qa-btn.wide { grid-column: 1 / -1; flex-direction: row; align-items: center; justify-content: space-between; }
+  .qa-btn.wide .lbl-row { font-size: 12px; }
 
   /* Bottom strip on left side (daily heating) */
   .zones-foot {
