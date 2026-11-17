@@ -14,6 +14,7 @@ export class ThemoOverview extends LitElement {
   @property({ attribute: false }) quickActions: QuickAction[] = [];
   @property() outsideText: string | null = null;
   @property() sunText: string | null = null;
+  @property({ attribute: false }) spot: number | null = null;
 
   private get activeCount() { return this.zones.filter((z) => z.heating).length; }
   private get houseAvg(): number | null {
@@ -43,7 +44,7 @@ export class ThemoOverview extends LitElement {
 
         <div class="zones">
           ${this.zones.map((z) => html`
-            <themo-zone-tile .zone=${z} ?selected=${z.climateEntityId === this.selectedId}></themo-zone-tile>`)}
+            <themo-zone-tile .zone=${z} .spot=${this.spot} ?selected=${z.climateEntityId === this.selectedId}></themo-zone-tile>`)}
         </div>
 
         ${this.quickActions.length ? html`

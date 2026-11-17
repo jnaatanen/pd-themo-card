@@ -14,6 +14,7 @@ export class ThemoMobileView extends LitElement {
   @property() outsideText: string | null = null;
   @property() energyToday: string | null = null;
   @property() energyCost: string | null = null;
+  @property({ attribute: false }) spot: number | null = null;
 
   private get heatingCount() { return this.zones.filter((z) => z.heating).length; }
 
@@ -39,7 +40,7 @@ export class ThemoMobileView extends LitElement {
         <span class="count">${this.zones.length} · ${this.heatingCount} heating</span>
       </div>
       <div class="zlist">
-        ${this.zones.map((z) => html`<themo-zone-row .zone=${z}></themo-zone-row>`)}
+        ${this.zones.map((z) => html`<themo-zone-row .zone=${z} .spot=${this.spot}></themo-zone-row>`)}
       </div>
 
       ${avg !== null ? html`

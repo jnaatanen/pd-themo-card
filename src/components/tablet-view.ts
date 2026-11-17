@@ -33,6 +33,7 @@ export class ThemoTabletView extends LitElement {
   @property() energyToday: string | null = null;
   @property() energyCost: string | null = null;
   @property() energySpot: string | null = null;
+  @property({ attribute: false }) spot: number | null = null;
 
   private get heatingCount() { return this.zones.filter((z) => z.heating).length; }
   private get houseAvg(): number | null {
@@ -64,7 +65,7 @@ export class ThemoTabletView extends LitElement {
 
         <div class="zones-grid">
           ${this.zones.map((z) => html`
-            <themo-tablet-tile .zone=${z} ?selected=${z.climateEntityId === (sel?.climateEntityId ?? '')}></themo-tablet-tile>`)}
+            <themo-tablet-tile .zone=${z} .spot=${this.spot} ?selected=${z.climateEntityId === (sel?.climateEntityId ?? '')}></themo-tablet-tile>`)}
         </div>
 
         <div class="zones-foot">

@@ -6,7 +6,7 @@ import { parseConfig } from './model/config';
 import { discoverZones, buildZoneViewModel } from './model/zone-model';
 import { activeSchedule, todayRow, nextChange } from './model/schedule';
 import { ScheduleService } from './schedule-service';
-import { setTemperature, setMode, setPreset, toggleBacklight, runQuickAction } from './actions';
+import { setTemperature, setMode, setPreset, toggleBacklight, runQuickAction, toggleChildLock, setPriceLimit } from './actions';
 import type { CardConfig, ScheduleData, ZoneViewModel } from './model/types';
 import './components/overview';
 import './components/detail';
@@ -120,6 +120,13 @@ export class ThemoCard extends LitElement {
     return unit && entityId === this.config.energy?.cost_entity ? `${st.state} ${unit}` : st.state;
   }
 
+  private spotNumber(): number | null {
+    const id = this.config.energy?.spot_entity;
+    if (!id) return null;
+    const n = Number(this._hass.states[id]?.state);
+    return Number.isFinite(n) ? n : null;
+  }
+
   private onZoneOpen(entityId: string) {
     this.onSelect(entityId);
     this.sheetOpen = true;
@@ -136,12 +143,13 @@ export class ThemoCard extends LitElement {
     const row = sched ? todayRow(sched, day) : null;
     const nc = sched ? nextChange(sched, day, nowHour) : null;
     const outsideText = outside !== null ? `${outside}°C` : null;
+    const spot = this.spotNumber();
 
     if (this.effectiveLayout() === 'mobile') {
       const ncText = nc ? `${String(nc.hour).padStart(2, '0')}:00 → ${nc.value}°` : null;
       return html`
         <themo-mobile-view
-          .zones=${zones} .quickActions=${this.config.quick_actions} .outsideText=${outsideText}
+          .zones=${zones} .quickActions=${this.config.quick_actions} .outsideText=${outsideText} .spot=${spot}
           .energyToday=${this.energyValue(this.config.energy?.today_entity)}
           .energyCost=${this.energyValue(this.config.energy?.cost_entity)}
           @zone-open=${(e: CustomEvent) => this.onZoneOpen((e.detail as { entityId: string }).entityId)}
@@ -153,6 +161,8 @@ export class ThemoCard extends LitElement {
           @setpoint-change=${(e: CustomEvent) => setTemperature(this._hass, sel.climateEntityId, (e.detail as { temperature: number }).temperature)}
           @mode-change=${(e: CustomEvent) => setMode(this._hass, sel.climateEntityId, (e.detail as { mode: Parameters<typeof setMode>[2] }).mode)}
           @backlight-toggle=${() => sel.backlightEntityId && toggleBacklight(this._hass, sel.backlightEntityId, sel.backlightOn ?? false)}
+          @childlock-toggle=${() => sel?.childLockEntityId && toggleChildLock(this._hass, sel.childLockEntityId, sel.childLockOn ?? false)}
+          @pricelimit-change=${(e: CustomEvent) => sel?.priceLimitEntityId && setPriceLimit(this._hass, sel.priceLimitEntityId, (e.detail as { value: number }).value)}
         ></themo-mobile-sheet>` : ''}`;
     }
 
@@ -160,7 +170,7 @@ export class ThemoCard extends LitElement {
       return html`
         <themo-tablet-view
           .zones=${zones} .selectedId=${sel?.climateEntityId ?? ''}
-          .quickActions=${this.config.quick_actions} .outsideText=${outsideText}
+          .quickActions=${this.config.quick_actions} .outsideText=${outsideText} .spot=${spot}
           .energyToday=${this.energyValue(this.config.energy?.today_entity)}
           .energyCost=${this.energyValue(this.config.energy?.cost_entity)}
           .energySpot=${this.energyValue(this.config.energy?.spot_entity)}
@@ -169,6 +179,9 @@ export class ThemoCard extends LitElement {
           @setpoint-change=${(e: CustomEvent) => sel && setTemperature(this._hass, sel.climateEntityId, (e.detail as { temperature: number }).temperature)}
           @mode-change=${(e: CustomEvent) => sel && setMode(this._hass, sel.climateEntityId, (e.detail as { mode: Parameters<typeof setMode>[2] }).mode)}
           @preset-change=${(e: CustomEvent) => sel && this.onPreset(sel, (e.detail as { preset: string }).preset)}
+          @backlight-toggle=${() => sel?.backlightEntityId && toggleBacklight(this._hass, sel.backlightEntityId, sel.backlightOn ?? false)}
+          @childlock-toggle=${() => sel?.childLockEntityId && toggleChildLock(this._hass, sel.childLockEntityId, sel.childLockOn ?? false)}
+          @pricelimit-change=${(e: CustomEvent) => sel?.priceLimitEntityId && setPriceLimit(this._hass, sel.priceLimitEntityId, (e.detail as { value: number }).value)}
         ></themo-tablet-view>`;
     }
 
@@ -177,7 +190,7 @@ export class ThemoCard extends LitElement {
         <themo-overview
           .zones=${zones} .selectedId=${sel?.climateEntityId ?? ''} .title=${this.config.title}
           .quickActions=${this.config.quick_actions}
-          .outsideText=${outsideText}
+          .outsideText=${outsideText} .spot=${spot}
           .sunText=${this.sunText()}
           @zone-select=${(e: CustomEvent) => this.onSelect((e.detail as { entityId: string }).entityId)}
           @quick-action=${(e: CustomEvent) => runQuickAction(this._hass, (e.detail as { action: Parameters<typeof runQuickAction>[1] }).action)}
@@ -189,6 +202,8 @@ export class ThemoCard extends LitElement {
             @mode-change=${(e: CustomEvent) => setMode(this._hass, sel.climateEntityId, (e.detail as { mode: Parameters<typeof setMode>[2] }).mode)}
             @preset-change=${(e: CustomEvent) => this.onPreset(sel, (e.detail as { preset: string }).preset)}
             @backlight-toggle=${() => sel.backlightEntityId && toggleBacklight(this._hass, sel.backlightEntityId, sel.backlightOn ?? false)}
+            @childlock-toggle=${() => sel?.childLockEntityId && toggleChildLock(this._hass, sel.childLockEntityId, sel.childLockOn ?? false)}
+            @pricelimit-change=${(e: CustomEvent) => sel?.priceLimitEntityId && setPriceLimit(this._hass, sel.priceLimitEntityId, (e.detail as { value: number }).value)}
           ></themo-detail>` : html`<div>No Themo thermostats found.</div>`}
           ${this.energyGlance()}
         </div>
