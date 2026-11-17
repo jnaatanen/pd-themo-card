@@ -43,19 +43,23 @@ export class ThemoDetail extends LitElement {
 
   @state() private pendingPrice: number | null = null;
   private pendingFor: string | null = null;
+  private pendingAt = 0;
 
   private bumpPrice(delta: number) {
     const base = this.pendingPrice ?? this.zone.priceLimit;
     if (base === null) return;
     const next = stepPrice(base, delta);
     this.pendingPrice = next;
+    this.pendingAt = Date.now();
     this.pendingFor = this.zone.climateEntityId;
     this.emit('pricelimit-change', { value: next });
   }
 
   willUpdate() {
     const z = this.zone;
-    if (this.pendingPrice !== null && (z?.climateEntityId !== this.pendingFor || z?.priceLimit === this.pendingPrice)) {
+    if (this.pendingPrice !== null && (z?.climateEntityId !== this.pendingFor
+        || z?.priceLimit === this.pendingPrice
+        || Date.now() - this.pendingAt > 10_000)) {
       this.pendingPrice = null;
       this.pendingFor = null;
     }

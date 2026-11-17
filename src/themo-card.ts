@@ -129,7 +129,7 @@ export class ThemoCard extends LitElement {
     const round3 = (x: number) => Math.round(x * 1000) / 1000;
     const unit = ((st!.attributes as Record<string, string>).unit_of_measurement ?? '')
       .toLowerCase().replace(/\s/g, '');
-    if (unit === '' || unit === 'c/kwh' || unit === 'snt/kwh' || unit === 'cent/kwh' || unit === 'ct/kwh') return round3(n);
+    if (unit === 'c/kwh' || unit === 'snt/kwh' || unit === 'cent/kwh' || unit === 'ct/kwh') return round3(n);
     if (unit === '€/kwh' || unit === 'eur/kwh') return round3(n * 100);
     if (unit === '€/mwh' || unit === 'eur/mwh') return round3(n / 10);
     return null; // unknown unit: safer to show no price-cap state than a wrong one
