@@ -19,6 +19,13 @@ export function clampSetpoint(value: number, min: number, max: number, step: num
   return Number(clamped.toFixed(decimals));
 }
 
+export const PRICE_STEP = 0.5;        // c/kWh per stepper tap (user decision)
+
+export function stepPrice(current: number, delta: number): number {
+  const next = Math.round((current + delta) * 10) / 10;
+  return Math.min(500, Math.max(0, next));
+}
+
 export function resolveThemoDeviceId(hass: HomeAssistant, climateEntityId: string): number | null {
   const ent = (hass as any).entities?.[climateEntityId];
   const deviceId = ent?.device_id;
@@ -78,6 +85,9 @@ export function buildZoneViewModel(
   const heatingId = sibling(hass, deviceId, 'binary_sensor', 'heating');
   const backlightId = sibling(hass, deviceId, 'light', 'backlight');
   const todayId = sibling(hass, deviceId, 'sensor', 'heating_today', true);
+  const childLockId = sibling(hass, deviceId, 'switch', 'child_lock', true);
+  const priceLimitId = sibling(hass, deviceId, 'number', 'price_limit', true);
+  const connectionId = sibling(hass, deviceId, 'binary_sensor', 'connection', true);
 
   const stateOf = (id: string | null) => (id ? hass.states[id] : undefined);
 
@@ -100,5 +110,10 @@ export function buildZoneViewModel(
     themoDeviceId: resolveThemoDeviceId(hass, climateEntityId),
     presetModes: Array.isArray(a.preset_modes) ? a.preset_modes : [],
     presetMode: a.preset_mode ?? null,
+    childLockEntityId: childLockId,
+    childLockOn: childLockId ? stateOf(childLockId)?.state === 'on' : null,
+    priceLimitEntityId: priceLimitId,
+    priceLimit: num(stateOf(priceLimitId)?.state),
+    connected: connectionId && stateOf(connectionId) ? stateOf(connectionId)!.state === 'on' : null,
   };
 }

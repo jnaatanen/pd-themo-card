@@ -47,7 +47,15 @@ export interface ZoneViewModel {
   themoDeviceId: number | null;
   presetModes: string[];
   presetMode: string | null;
+  childLockEntityId: string | null;   // switch sibling (_child_lock)
+  childLockOn: boolean | null;
+  priceLimitEntityId: string | null;  // number sibling (_price_limit)
+  priceLimit: number | null;          // c/kWh
+  connected: boolean | null;          // binary_sensor sibling (_connection); null = no sensor
 }
+
+export type ZoneStatusKind = 'offline' | 'heating' | 'cap' | 'plain';
+export interface ZoneStatusResult { kind: ZoneStatusKind; text: string; pct: number | null; }
 
 export interface ScheduleSetpoint { day: number; hour: number; value: number; } // day 0=Sun..6=Sat
 export interface Schedule { id: number; name: string; active: boolean; setpoints: ScheduleSetpoint[]; }
