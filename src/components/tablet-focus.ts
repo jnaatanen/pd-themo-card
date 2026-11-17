@@ -2,7 +2,8 @@ import { LitElement, html, css, svg } from 'lit';
 import { customElement, property } from 'lit/decorators.js';
 import { tokens } from '../styles/tokens';
 import { tablet } from '../styles/tablet';
-import { ringOffset, clampSetpoint, RING_CIRCUMFERENCE } from '../model/zone-model';
+import { ringOffset, clampSetpoint, stepPrice, PRICE_STEP, RING_CIRCUMFERENCE } from '../model/zone-model';
+import { LOCK_ICON, CLOUD_OFF_ICON } from './zone-row';
 import type { ZoneViewModel, ThemoMode } from '../model/types';
 
 const FOCUS_R = 80;
@@ -27,6 +28,18 @@ export class ThemoTabletFocus extends LitElement {
     }
     .pchip.active { background: rgba(3,169,244,0.12); border-color: rgba(3,169,244,0.5); color: var(--accent); }
     .auto-a { color: var(--ok); font-weight: 600; }
+    .dev-row { margin-top: 12px; display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+    .dev-chip { display: inline-flex; align-items: center; gap: 6px; height: 32px; padding: 0 12px; border-radius: 999px; border: 1px solid var(--border-2); background: var(--surface-2); color: var(--fg-soft); font-size: 12px; font-family: inherit; cursor: pointer; }
+    .dev-chip svg { width: 14px; height: 14px; }
+    .dev-chip.active { background: rgba(3,169,244,0.12); border-color: rgba(3,169,244,0.5); color: var(--accent); }
+    .price-row { display: flex; align-items: center; justify-content: space-between; margin-top: 10px; }
+    .plbl { font-family: var(--font-mono); font-size: 10px; letter-spacing: .16em; text-transform: uppercase; color: var(--muted); }
+    .pu { font-size: 11px; color: var(--muted); }
+    .mini-step { display: inline-flex; align-items: center; gap: 8px; }
+    .mini-step button { width: 22px; height: 22px; border-radius: 6px; border: 1px solid var(--border-2); background: var(--surface-3); color: var(--accent); font-size: 14px; line-height: 1; cursor: pointer; padding: 0; }
+    .mini-step button:disabled { opacity: .4; cursor: default; }
+    .offchip { display: inline-flex; align-items: center; gap: 5px; color: var(--warn); font: 500 10px var(--font-mono); letter-spacing: .04em; margin-bottom: 8px; }
+    .offchip svg { width: 12px; height: 12px; }
   `];
   @property({ attribute: false }) zone!: ZoneViewModel;
 
@@ -39,6 +52,12 @@ export class ThemoTabletFocus extends LitElement {
     this.emit('setpoint-change', { temperature: next });
   }
 
+  private bumpPrice(delta: number) {
+    const v = this.zone.priceLimit;
+    if (v === null) return;
+    this.emit('pricelimit-change', { value: stepPrice(v, delta) });
+  }
+
   render() {
     const z = this.zone;
     const offset = (ringOffset(z.currentTemp, z.minTemp, z.maxTemp) / RING_CIRCUMFERENCE) * FOCUS_CIRC;
@@ -46,6 +65,7 @@ export class ThemoTabletFocus extends LitElement {
       <div class="focus-card">
         <div class="label">Selected zone</div>
         <div class="name">${z.name}</div>
+        ${z.connected === false ? html`<div class="offchip">${CLOUD_OFF_ICON}offline</div>` : ''}
         <div class="ring-wrap">
           ${svg`<svg class="ring" viewBox="0 0 200 200">
             <circle cx="100" cy="100" r="${FOCUS_R}" fill="none" stroke="rgba(255,255,255,0.06)" stroke-width="8"/>
@@ -71,6 +91,24 @@ export class ThemoTabletFocus extends LitElement {
               ${m.icon}<div class="name">${m.name}</div>
             </div>`)}
         </div>
+        ${z.backlightEntityId !== null || z.childLockEntityId !== null ? html`
+        <div class="dev-row">
+          ${z.backlightEntityId !== null ? html`
+            <button class="dev-chip ${z.backlightOn ? 'active' : ''}" data-backlight
+              @click=${() => this.emit('backlight-toggle')}>Backlight · ${z.backlightOn === null ? '—' : z.backlightOn ? 'On' : 'Off'}</button>` : ''}
+          ${z.childLockEntityId !== null ? html`
+            <button class="dev-chip ${z.childLockOn ? 'active' : ''}" data-childlock
+              @click=${() => this.emit('childlock-toggle')}>${LOCK_ICON}Child lock · ${z.childLockOn === null ? '—' : z.childLockOn ? 'Locked' : 'Open'}</button>` : ''}
+        </div>` : ''}
+        ${z.priceLimitEntityId !== null ? html`
+        <div class="price-row">
+          <span class="plbl">Price limit</span>
+          <span class="mini-step">
+            <button data-price-dn ?disabled=${z.priceLimit === null} @click=${() => this.bumpPrice(-PRICE_STEP)}>−</button>
+            ${z.priceLimit ?? '—'} <span class="pu">c/kWh</span>
+            <button data-price-up ?disabled=${z.priceLimit === null} @click=${() => this.bumpPrice(PRICE_STEP)}>+</button>
+          </span>
+        </div>` : ''}
         ${z.presetModes.length ? html`
           <div class="preset-row">
             ${z.presetModes.map((p) => html`
