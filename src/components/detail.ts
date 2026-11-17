@@ -2,7 +2,8 @@ import { LitElement, html, css, svg } from 'lit';
 import { customElement, property } from 'lit/decorators.js';
 import { tokens } from '../styles/tokens';
 import { shared } from '../styles/shared';
-import { ringOffset, clampSetpoint, RING_CIRCUMFERENCE } from '../model/zone-model';
+import { ringOffset, clampSetpoint, RING_CIRCUMFERENCE, stepPrice, PRICE_STEP } from '../model/zone-model';
+import { LOCK_ICON, CLOUD_OFF_ICON } from './zone-row';
 import type { ZoneViewModel, NextChange, ThemoMode } from '../model/types';
 
 const MODES: { mode: ThemoMode; name: string; desc: string }[] = [
@@ -13,7 +14,16 @@ const MODES: { mode: ThemoMode; name: string; desc: string }[] = [
 
 @customElement('themo-detail')
 export class ThemoDetail extends LitElement {
-  static styles = [tokens, shared, css`:host{display:block;} .auto-a { color: var(--ok); font-weight: 600; }`];
+  static styles = [tokens, shared, css`
+    :host{display:block;}
+    .auto-a { color: var(--ok); font-weight: 600; }
+    .mini-step { display: inline-flex; align-items: center; gap: 8px; }
+    .mini-step button { width: 22px; height: 22px; border-radius: 6px; border: 1px solid var(--border-2); background: var(--surface-3); color: var(--accent); font-size: 14px; line-height: 1; cursor: pointer; padding: 0; }
+    .mini-step button:disabled { opacity: .4; cursor: default; }
+    .kv .lock-ic { width: 14px; height: 14px; }
+    .offchip { display: inline-flex; align-items: center; gap: 5px; color: var(--warn); font: 500 11px var(--font-mono); letter-spacing: .04em; margin-top: 4px; }
+    .offchip svg { width: 12px; height: 12px; }
+  `];
   @property({ attribute: false }) zone!: ZoneViewModel;
   @property({ attribute: false }) todayRow: (number | null)[] | null = null;
   @property({ attribute: false }) nextChange: NextChange | null = null;
@@ -31,6 +41,12 @@ export class ThemoDetail extends LitElement {
     this.emit('setpoint-change', { temperature: next });
   }
 
+  private bumpPrice(delta: number) {
+    const v = this.zone.priceLimit;
+    if (v === null) return;
+    this.emit('pricelimit-change', { value: stepPrice(v, delta) });
+  }
+
   render() {
     const z = this.zone;
     const offset = ringOffset(z.currentTemp, z.minTemp, z.maxTemp);
@@ -41,6 +57,7 @@ export class ThemoDetail extends LitElement {
           <div class="detail-eyebrow">Selected zone</div>
           <div class="detail-title">${z.name}</div>
           <div class="detail-entity">${z.climateEntityId}</div>
+          ${z.connected === false ? html`<div class="offchip">${CLOUD_OFF_ICON}offline</div>` : ''}
         </div>
 
         <div class="ring-stage">
@@ -86,6 +103,22 @@ export class ThemoDetail extends LitElement {
             <div class="k">Backlight</div>
             <div class="v" style="color:var(--accent)">${z.backlightOn === null ? '—' : z.backlightOn ? 'On' : 'Off'}</div>
           </div>
+          ${z.childLockEntityId !== null ? html`
+          <div class="kv" data-childlock style="cursor:pointer" @click=${() => this.emit('childlock-toggle', {})}>
+            <div class="k">Child lock</div>
+            <div class="v" style="color:${z.childLockOn ? 'var(--accent)' : 'var(--muted)'};display:flex;align-items:center;gap:7px">${LOCK_ICON}${z.childLockOn === null ? '—' : z.childLockOn ? 'Locked' : 'Open'}</div>
+            <div class="sub">${z.childLockOn ? 'tap to unlock' : 'tap to lock'}</div>
+          </div>` : ''}
+          ${z.priceLimitEntityId !== null ? html`
+          <div class="kv">
+            <div class="k">Price limit</div>
+            <div class="v mini-step">
+              <button data-price-dn ?disabled=${z.priceLimit === null} @click=${() => this.bumpPrice(-PRICE_STEP)}>−</button>
+              ${z.priceLimit ?? '—'}<span class="unit">c/kWh</span>
+              <button data-price-up ?disabled=${z.priceLimit === null} @click=${() => this.bumpPrice(PRICE_STEP)}>+</button>
+            </div>
+            <div class="sub">auto skips pricier hours</div>
+          </div>` : ''}
         </div>
 
         ${showSchedule ? this.renderSchedule(z) : ''}
