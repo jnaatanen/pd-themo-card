@@ -1,5 +1,5 @@
 import { LitElement, html, css, svg } from 'lit';
-import { customElement, property } from 'lit/decorators.js';
+import { customElement, property, state } from 'lit/decorators.js';
 import { tokens } from '../styles/tokens';
 import { mobile } from '../styles/mobile';
 import { ringOffset, clampSetpoint, stepPrice, PRICE_STEP, RING_CIRCUMFERENCE } from '../model/zone-model';
@@ -22,6 +22,7 @@ export class ThemoMobileSheet extends LitElement {
     .mini-step { display: inline-flex; align-items: center; gap: 8px; }
     .mini-step button { width: 22px; height: 22px; border-radius: 6px; border: 1px solid var(--border-2); background: var(--surface-3); color: var(--accent); font-size: 14px; line-height: 1; cursor: pointer; padding: 0; }
     .mini-step button:disabled { opacity: .4; cursor: default; }
+    .kv .sub { font-family: var(--font-mono); font-size: 9px; color: var(--muted); letter-spacing: .1em; text-transform: uppercase; margin-top: 3px; }
     .kv .lock-ic { width: 13px; height: 13px; }
     .offchip { display: inline-flex; align-items: center; gap: 5px; color: var(--warn); font: 500 10px var(--font-mono); letter-spacing: .04em; }
     .offchip svg { width: 12px; height: 12px; }
@@ -39,10 +40,24 @@ export class ThemoMobileSheet extends LitElement {
     this.emit('setpoint-change', { temperature: next });
   }
 
+  @state() private pendingPrice: number | null = null;
+  private pendingFor: string | null = null;
+
   private bumpPrice(delta: number) {
-    const v = this.zone.priceLimit;
-    if (v === null) return;
-    this.emit('pricelimit-change', { value: stepPrice(v, delta) });
+    const base = this.pendingPrice ?? this.zone.priceLimit;
+    if (base === null) return;
+    const next = stepPrice(base, delta);
+    this.pendingPrice = next;
+    this.pendingFor = this.zone.climateEntityId;
+    this.emit('pricelimit-change', { value: next });
+  }
+
+  willUpdate() {
+    const z = this.zone;
+    if (this.pendingPrice !== null && (z?.climateEntityId !== this.pendingFor || z?.priceLimit === this.pendingPrice)) {
+      this.pendingPrice = null;
+      this.pendingFor = null;
+    }
   }
 
   render() {
@@ -103,14 +118,15 @@ export class ThemoMobileSheet extends LitElement {
           ${z.childLockEntityId !== null ? html`
           <div class="kv" data-childlock style="cursor:pointer" @click=${() => this.emit('childlock-toggle')}>
             <div class="k">Child lock</div>
-            <div class="v accent" style="display:flex;align-items:center;gap:6px">${LOCK_ICON}${z.childLockOn === null ? '—' : z.childLockOn ? 'Locked' : 'Open'}</div>
+            <div class="v" style="color:${z.childLockOn ? 'var(--accent)' : 'var(--muted)'};display:flex;align-items:center;gap:6px">${LOCK_ICON}${z.childLockOn === null ? '—' : z.childLockOn ? 'Locked' : 'Open'}</div>
+            <div class="sub">${z.childLockOn ? 'tap to unlock' : 'tap to lock'}</div>
           </div>` : ''}
           ${z.priceLimitEntityId !== null ? html`
           <div class="kv">
             <div class="k">Price limit</div>
             <div class="v mini-step">
               <button data-price-dn ?disabled=${z.priceLimit === null} @click=${() => this.bumpPrice(-PRICE_STEP)}>−</button>
-              ${z.priceLimit ?? '—'} c/kWh
+              ${this.pendingPrice ?? z.priceLimit ?? '—'} c/kWh
               <button data-price-up ?disabled=${z.priceLimit === null} @click=${() => this.bumpPrice(PRICE_STEP)}>+</button>
             </div>
           </div>` : ''}

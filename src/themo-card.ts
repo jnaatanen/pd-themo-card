@@ -123,8 +123,16 @@ export class ThemoCard extends LitElement {
   private spotNumber(): number | null {
     const id = this.config.energy?.spot_entity;
     if (!id) return null;
-    const n = Number(this._hass.states[id]?.state);
-    return Number.isFinite(n) ? n : null;
+    const st = this._hass.states[id];
+    const n = Number(st?.state);
+    if (!Number.isFinite(n)) return null;
+    const round3 = (x: number) => Math.round(x * 1000) / 1000;
+    const unit = ((st!.attributes as Record<string, string>).unit_of_measurement ?? '')
+      .toLowerCase().replace(/\s/g, '');
+    if (unit === '' || unit === 'c/kwh' || unit === 'snt/kwh' || unit === 'cent/kwh' || unit === 'ct/kwh') return round3(n);
+    if (unit === '€/kwh' || unit === 'eur/kwh') return round3(n * 100);
+    if (unit === '€/mwh' || unit === 'eur/mwh') return round3(n / 10);
+    return null; // unknown unit: safer to show no price-cap state than a wrong one
   }
 
   private onZoneOpen(entityId: string) {

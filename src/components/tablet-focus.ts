@@ -1,5 +1,5 @@
 import { LitElement, html, css, svg } from 'lit';
-import { customElement, property } from 'lit/decorators.js';
+import { customElement, property, state } from 'lit/decorators.js';
 import { tokens } from '../styles/tokens';
 import { tablet } from '../styles/tablet';
 import { ringOffset, clampSetpoint, stepPrice, PRICE_STEP, RING_CIRCUMFERENCE } from '../model/zone-model';
@@ -52,10 +52,24 @@ export class ThemoTabletFocus extends LitElement {
     this.emit('setpoint-change', { temperature: next });
   }
 
+  @state() private pendingPrice: number | null = null;
+  private pendingFor: string | null = null;
+
   private bumpPrice(delta: number) {
-    const v = this.zone.priceLimit;
-    if (v === null) return;
-    this.emit('pricelimit-change', { value: stepPrice(v, delta) });
+    const base = this.pendingPrice ?? this.zone.priceLimit;
+    if (base === null) return;
+    const next = stepPrice(base, delta);
+    this.pendingPrice = next;
+    this.pendingFor = this.zone.climateEntityId;
+    this.emit('pricelimit-change', { value: next });
+  }
+
+  willUpdate() {
+    const z = this.zone;
+    if (this.pendingPrice !== null && (z?.climateEntityId !== this.pendingFor || z?.priceLimit === this.pendingPrice)) {
+      this.pendingPrice = null;
+      this.pendingFor = null;
+    }
   }
 
   render() {
@@ -105,7 +119,7 @@ export class ThemoTabletFocus extends LitElement {
           <span class="plbl">Price limit</span>
           <span class="mini-step">
             <button data-price-dn ?disabled=${z.priceLimit === null} @click=${() => this.bumpPrice(-PRICE_STEP)}>−</button>
-            ${z.priceLimit ?? '—'} <span class="pu">c/kWh</span>
+            ${this.pendingPrice ?? z.priceLimit ?? '—'} <span class="pu">c/kWh</span>
             <button data-price-up ?disabled=${z.priceLimit === null} @click=${() => this.bumpPrice(PRICE_STEP)}>+</button>
           </span>
         </div>` : ''}

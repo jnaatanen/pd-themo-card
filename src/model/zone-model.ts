@@ -90,6 +90,10 @@ export function buildZoneViewModel(
   const connectionId = sibling(hass, deviceId, 'binary_sensor', 'connection', true);
 
   const stateOf = (id: string | null) => (id ? hass.states[id] : undefined);
+  const triState = (id: string | null): boolean | null => {
+    const s = stateOf(id)?.state;
+    return s === 'on' ? true : s === 'off' ? false : null;
+  };
 
   return {
     climateEntityId,
@@ -111,9 +115,9 @@ export function buildZoneViewModel(
     presetModes: Array.isArray(a.preset_modes) ? a.preset_modes : [],
     presetMode: a.preset_mode ?? null,
     childLockEntityId: childLockId,
-    childLockOn: childLockId ? stateOf(childLockId)?.state === 'on' : null,
+    childLockOn: triState(childLockId),
     priceLimitEntityId: priceLimitId,
     priceLimit: num(stateOf(priceLimitId)?.state),
-    connected: connectionId && stateOf(connectionId) ? stateOf(connectionId)!.state === 'on' : null,
+    connected: triState(connectionId),
   };
 }

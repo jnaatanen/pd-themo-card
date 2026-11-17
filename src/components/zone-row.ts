@@ -9,7 +9,7 @@ export function zoneStatus(z: ZoneViewModel, spot: number | null = null): ZoneSt
   if (z.connected === false) return { kind: 'offline', text: 'offline · cloud connection lost', pct: null };
   if (z.heating) return { kind: 'heating', text: 'heating', pct: z.heatingTodayPct };
   if (z.mode === 'auto' && z.priceLimit !== null && spot !== null && spot > z.priceLimit)
-    return { kind: 'cap', text: `price cap · spot ${spot} > ${z.priceLimit} c/kWh`, pct: null };
+    return { kind: 'cap', text: `price cap · spot ${spot.toFixed(1)} > ${z.priceLimit} c/kWh`, pct: null };
   if (z.floorTemp !== null) return { kind: 'plain', text: `floor ${z.floorTemp}°`, pct: null };
   if (z.mode === 'off') return { kind: 'plain', text: 'off', pct: null };
   if (z.mode === 'auto' && z.currentTemp !== null && z.targetTemp !== null && z.currentTemp >= z.targetTemp)
