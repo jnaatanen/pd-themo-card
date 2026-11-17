@@ -2,7 +2,7 @@ import { LitElement, html, css } from 'lit';
 import { customElement, property } from 'lit/decorators.js';
 import { tokens } from '../styles/tokens';
 import { tablet } from '../styles/tablet';
-import { zoneStatus } from './zone-row';
+import { zoneStatus, LOCK_ICON, CLOUD_OFF_ICON } from './zone-row';
 import type { ZoneViewModel, ThemoMode } from '../model/types';
 
 const MODE_LABEL: Record<ThemoMode, string> = { off: 'Off', heat: 'Heat', auto: 'Auto' };
@@ -22,8 +22,14 @@ export class ThemoTabletTile extends LitElement {
     .auto-a { color: var(--ok); font-weight: 600; }
     .meta-line .st-heat { color: var(--heat); }
     .meta-line .pct { color: var(--fg-soft); }
+    .lock-ic { width: 14px; height: 14px; margin-right: 8px; color: var(--fg-soft); align-self: center; }
+    .meta-line .cap { color: var(--warn); }
+    .meta-line .offl { color: var(--warn); display: inline-flex; align-items: center; gap: 5px; }
+    .meta-line .offl svg { width: 12px; height: 12px; flex-shrink: 0; }
+    .ztile.offline { opacity: .55; }
   `];
   @property({ attribute: false }) zone!: ZoneViewModel;
+  @property({ attribute: false }) spot: number | null = null;
   @property({ type: Boolean }) selected = false;
 
   private select() {
@@ -35,7 +41,7 @@ export class ThemoTabletTile extends LitElement {
   render() {
     const z = this.zone;
     const delta = deltaParts(z.currentTemp, z.targetTemp);
-    const cls = ['ztile', z.heating ? 'heating' : z.mode, this.selected ? 'selected' : ''].join(' ');
+    const cls = ['ztile', z.heating ? 'heating' : z.mode, this.selected ? 'selected' : '', z.connected === false ? 'offline' : ''].join(' ');
     return html`
       <div class="${cls}" @click=${() => this.select()}>
         <div>
@@ -44,7 +50,7 @@ export class ThemoTabletTile extends LitElement {
               <div class="name">${z.name}</div>
               <div class="entity">${z.climateEntityId}</div>
             </div>
-            <div class="mp"><span class="sw"></span>${MODE_LABEL[z.mode]}</div>
+            ${z.childLockOn ? LOCK_ICON : ''}<div class="mp"><span class="sw"></span>${MODE_LABEL[z.mode]}</div>
           </div>
           <div class="big-temp">
             <div class="now">${z.currentTemp ?? '—'}</div>
@@ -53,9 +59,13 @@ export class ThemoTabletTile extends LitElement {
           </div>
           <div class="target-line">→ <span class="target">${z.targetTemp !== null ? html`${z.targetTemp}°`
             : z.mode === 'auto' ? html`<span class="auto-a">A</span>` : '—'}</span>${z.targetTemp !== null ? ' setpoint' : ''}</div>
-          <div class="meta-line">${z.heating
-            ? html`<span class="st-heat">heating</span>${z.heatingTodayPct !== null ? html` · <span class="pct">${z.heatingTodayPct}% today</span>` : ''}`
-            : zoneStatus(z).text}</div>
+          <div class="meta-line">${(() => {
+            const st = zoneStatus(z, this.spot);
+            if (st.kind === 'offline') return html`<span class="offl">${CLOUD_OFF_ICON}${st.text}</span>`;
+            if (st.kind === 'heating') return html`<span class="st-heat">heating</span>${st.pct !== null ? html` · <span class="pct">${st.pct}% today</span>` : ''}`;
+            if (st.kind === 'cap') return html`<span class="cap">${st.text}</span>`;
+            return st.text;
+          })()}</div>
         </div>
       </div>`;
   }
