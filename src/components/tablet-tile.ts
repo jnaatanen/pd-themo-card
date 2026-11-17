@@ -2,7 +2,7 @@ import { LitElement, html, css } from 'lit';
 import { customElement, property } from 'lit/decorators.js';
 import { tokens } from '../styles/tokens';
 import { tablet } from '../styles/tablet';
-import { zoneMeta } from './zone-row';
+import { zoneStatus } from './zone-row';
 import type { ZoneViewModel, ThemoMode } from '../model/types';
 
 const MODE_LABEL: Record<ThemoMode, string> = { off: 'Off', heat: 'Heat', auto: 'Auto' };
@@ -55,7 +55,7 @@ export class ThemoTabletTile extends LitElement {
             : z.mode === 'auto' ? html`<span class="auto-a">A</span>` : '—'}</span>${z.targetTemp !== null ? ' setpoint' : ''}</div>
           <div class="meta-line">${z.heating
             ? html`<span class="st-heat">heating</span>${z.heatingTodayPct !== null ? html` · <span class="pct">${z.heatingTodayPct}% today</span>` : ''}`
-            : zoneMeta(z)}</div>
+            : zoneStatus(z).text}</div>
         </div>
       </div>`;
   }

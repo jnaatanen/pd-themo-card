@@ -2,15 +2,19 @@ import { LitElement, html, css, svg } from 'lit';
 import { customElement, property } from 'lit/decorators.js';
 import { tokens } from '../styles/tokens';
 import { mobile } from '../styles/mobile';
-import type { ZoneViewModel } from '../model/types';
+import type { ZoneViewModel, ZoneStatusResult } from '../model/types';
 
-// Honest meta line — built only from real state data (spec §3), first match wins.
-export function zoneMeta(z: ZoneViewModel): string {
-  if (z.heating) return z.heatingTodayPct !== null ? `heating · ${z.heatingTodayPct}% today` : 'heating';
-  if (z.floorTemp !== null) return `floor ${z.floorTemp}°`;
-  if (z.mode === 'off') return 'off';
-  if (z.mode === 'auto' && z.currentTemp !== null && z.targetTemp !== null && z.currentTemp >= z.targetTemp) return 'at setpoint';
-  return z.mode;
+// Honest status line — real state data only (spec §3/§5), first match wins.
+export function zoneStatus(z: ZoneViewModel, spot: number | null = null): ZoneStatusResult {
+  if (z.connected === false) return { kind: 'offline', text: 'offline · cloud connection lost', pct: null };
+  if (z.heating) return { kind: 'heating', text: 'heating', pct: z.heatingTodayPct };
+  if (z.mode === 'auto' && z.priceLimit !== null && spot !== null && spot > z.priceLimit)
+    return { kind: 'cap', text: `price cap · spot ${spot} > ${z.priceLimit} c/kWh`, pct: null };
+  if (z.floorTemp !== null) return { kind: 'plain', text: `floor ${z.floorTemp}°`, pct: null };
+  if (z.mode === 'off') return { kind: 'plain', text: 'off', pct: null };
+  if (z.mode === 'auto' && z.currentTemp !== null && z.targetTemp !== null && z.currentTemp >= z.targetTemp)
+    return { kind: 'plain', text: 'at setpoint', pct: null };
+  return { kind: 'plain', text: z.mode, pct: null };
 }
 
 const IC_THERMO = svg`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 14.76V3.5a2.5 2.5 0 0 0-5 0v11.26a4.5 4.5 0 1 0 5 0z"/></svg>`;
@@ -50,7 +54,7 @@ export class ThemoZoneRow extends LitElement {
           <div class="name">${z.name}</div>
           <div class="meta">${z.heating
             ? html`<span class="st-heat">heating</span>${z.heatingTodayPct !== null ? html` · <span class="pct">${z.heatingTodayPct}% today</span>` : ''}`
-            : zoneMeta(z)}</div>
+            : zoneStatus(z).text}</div>
         </div>
         <div class="now">${z.currentTemp ?? '—'}<span class="u">°</span><span class="tgt">→ ${z.targetTemp !== null ? html`${z.targetTemp}°`
           : z.mode === 'auto' ? html`<span class="auto-a">A</span>` : '—'}</span></div>
