@@ -17,3 +17,9 @@ export function runQuickAction(hass: HomeAssistant, action: QuickAction) {
   const [domain, service] = action.service.split('.', 2);
   return hass.callService(domain, service, action.service_data ?? {});
 }
+export function toggleChildLock(hass: HomeAssistant, entityId: string, isOn: boolean) {
+  return hass.callService('switch', isOn ? 'turn_off' : 'turn_on', { entity_id: entityId });
+}
+export function setPriceLimit(hass: HomeAssistant, entityId: string, value: number) {
+  return hass.callService('number', 'set_value', { entity_id: entityId, value });
+}
