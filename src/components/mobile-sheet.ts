@@ -2,7 +2,8 @@ import { LitElement, html, css, svg } from 'lit';
 import { customElement, property } from 'lit/decorators.js';
 import { tokens } from '../styles/tokens';
 import { mobile } from '../styles/mobile';
-import { ringOffset, clampSetpoint, RING_CIRCUMFERENCE } from '../model/zone-model';
+import { ringOffset, clampSetpoint, stepPrice, PRICE_STEP, RING_CIRCUMFERENCE } from '../model/zone-model';
+import { LOCK_ICON, CLOUD_OFF_ICON } from './zone-row';
 import type { ZoneViewModel, ThemoMode } from '../model/types';
 
 const MINI_R = 58;
@@ -16,7 +17,15 @@ const MODES: { mode: ThemoMode; name: string; icon: ReturnType<typeof svg> }[] =
 
 @customElement('themo-mobile-sheet')
 export class ThemoMobileSheet extends LitElement {
-  static styles = [tokens, mobile, css`:host{display:contents;} .auto-a { color: var(--ok); font-weight: 600; }`];
+  static styles = [tokens, mobile, css`
+    :host{display:contents;} .auto-a { color: var(--ok); font-weight: 600; }
+    .mini-step { display: inline-flex; align-items: center; gap: 8px; }
+    .mini-step button { width: 22px; height: 22px; border-radius: 6px; border: 1px solid var(--border-2); background: var(--surface-3); color: var(--accent); font-size: 14px; line-height: 1; cursor: pointer; padding: 0; }
+    .mini-step button:disabled { opacity: .4; cursor: default; }
+    .kv .lock-ic { width: 13px; height: 13px; }
+    .offchip { display: inline-flex; align-items: center; gap: 5px; color: var(--warn); font: 500 10px var(--font-mono); letter-spacing: .04em; }
+    .offchip svg { width: 12px; height: 12px; }
+  `];
   @property({ attribute: false }) zone!: ZoneViewModel;
   @property() nextChangeText: string | null = null;
 
@@ -30,6 +39,12 @@ export class ThemoMobileSheet extends LitElement {
     this.emit('setpoint-change', { temperature: next });
   }
 
+  private bumpPrice(delta: number) {
+    const v = this.zone.priceLimit;
+    if (v === null) return;
+    this.emit('pricelimit-change', { value: stepPrice(v, delta) });
+  }
+
   render() {
     const z = this.zone;
     const offset = (ringOffset(z.currentTemp, z.minTemp, z.maxTemp) / RING_CIRCUMFERENCE) * MINI_CIRC;
@@ -40,6 +55,7 @@ export class ThemoMobileSheet extends LitElement {
         <div class="head">
           <div class="name">${z.name}</div>
           <div class="entity">${z.climateEntityId}</div>
+          ${z.connected === false ? html`<div class="offchip">${CLOUD_OFF_ICON}offline</div>` : ''}
         </div>
         <div class="dial-row">
           <div class="mini-ring">
@@ -84,6 +100,20 @@ export class ThemoMobileSheet extends LitElement {
             <div class="v accent">${z.backlightOn === null ? '—' : z.backlightOn ? 'On' : 'Off'}</div></div>
           <div class="kv"><div class="k">Next change</div>
             <div class="v">${this.nextChangeText ?? '—'}</div></div>
+          ${z.childLockEntityId !== null ? html`
+          <div class="kv" data-childlock style="cursor:pointer" @click=${() => this.emit('childlock-toggle')}>
+            <div class="k">Child lock</div>
+            <div class="v accent" style="display:flex;align-items:center;gap:6px">${LOCK_ICON}${z.childLockOn === null ? '—' : z.childLockOn ? 'Locked' : 'Open'}</div>
+          </div>` : ''}
+          ${z.priceLimitEntityId !== null ? html`
+          <div class="kv">
+            <div class="k">Price limit</div>
+            <div class="v mini-step">
+              <button data-price-dn ?disabled=${z.priceLimit === null} @click=${() => this.bumpPrice(-PRICE_STEP)}>−</button>
+              ${z.priceLimit ?? '—'} c/kWh
+              <button data-price-up ?disabled=${z.priceLimit === null} @click=${() => this.bumpPrice(PRICE_STEP)}>+</button>
+            </div>
+          </div>` : ''}
         </div>
       </div>`;
   }
