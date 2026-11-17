@@ -37,7 +37,9 @@ Use it entirely at your own risk. See [LICENSE](LICENSE) for the full terms.
 
 - Home Assistant 2025.1.0 or newer.
 - The [`pd_hathemo`](https://github.com/jnaatanen/pd-hathemo) integration installed,
-  configured, and exposing at least one `climate.*` thermostat.
+  configured, and exposing at least one `climate.*` thermostat. The child lock, price
+  limit and offline features need integration **0.4.0+** — with an older integration
+  those controls simply stay hidden.
 
 ## Installation
 
@@ -99,7 +101,7 @@ thermostat and shows the first one in the detail panel.
 | `step` | `0.5` | Setpoint +/- step. The thermostat's own `target_temp_step` is used when available. |
 | `sun_entity` | *(off)* | A `sun.*` entity. When set, adds a **Sunrise → Sunset** stat to the strip. |
 | `energy.today_entity` | *(off)* | A kWh sensor (your own template/utility-meter sensor) shown as a daily-energy glance card. |
-| `energy.cost_entity`, `energy.spot_entity` | *(off)* | Cost and spot-price sensors (external pricing data); shown in the tablet layout's footer stats when set. |
+| `energy.cost_entity`, `energy.spot_entity` | *(off)* | Cost and spot-price sensors (external pricing data), shown in the tablet layout's footer stats. `spot_entity` also drives the zone *price cap* indicator: the sensor must report the **current hourly** price (not a daily average) with a `unit_of_measurement` of `c/kWh`/`snt/kWh`, `EUR/kWh` or `EUR/MWh` (converted automatically); with an unknown or missing unit the cap indicator stays off. |
 | `quick_actions` | `[]` | Buttons/chips that call a service. Each: `{ name, icon?, description?, service, service_data? }` (e.g. point at your own `script.*`). `description` shows as a sub-line on the tablet layout's House actions buttons. |
 
 ## How it finds your thermostats
@@ -110,8 +112,9 @@ The `pd_hathemo` integration names entities after each thermostat's device. The 
 1. Auto-discovers `climate.*` entities whose platform is `pd_hathemo` (or uses your
    `entities` list).
 2. For each thermostat, resolves the sibling entities on the **same device** — room /
-   floor / outside temperature, the heating binary sensor, the backlight light, and the
-   daily-heating sensor.
+   floor / outside temperature, the heating binary sensor, the backlight light, the
+   daily-heating sensor, and (with pd_hathemo 0.4.0+) the child-lock switch, the
+   price-limit number and the cloud-connection sensor.
 3. Reads the device's heating **schedules** through the integration's
    `pd_hathemo/schedules` websocket command (the weekly setpoint grid) to draw the
    schedule heatmap and the "next change" readout, and switches the active schedule via
@@ -125,6 +128,12 @@ The `pd_hathemo` integration names entities after each thermostat's device. The 
   mode tiles, room/floor sensor and daily-heating readouts, tappable backlight toggle.
 - **Schedules** — today's setpoint heatmap, "next change → temp", and one-tap switching
   of the active schedule (Home / Away / …) via climate presets.
+- **Child lock & price limit** — toggle the device's button lock and adjust Themo's
+  electricity price limit (0.5 c/kWh steps) from the detail panel, bottom sheet or tablet
+  focus card; locked zones carry a small lock icon on their tile.
+- **Price cap & offline states** — a zone in Auto shows an amber *price cap* status when
+  the configured spot price exceeds its limit, and a thermostat that loses its Themo-cloud
+  connection dims with an *offline* status.
 - **Optional sections** — Sunrise → Sunset, a daily-energy glance, and quick-action chips
   appear only when you configure their source.
 - **Three layouts in one card** — the full two-column desktop view in wide (Panel) slots,
