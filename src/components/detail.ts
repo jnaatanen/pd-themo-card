@@ -159,7 +159,7 @@ export class ThemoDetail extends LitElement {
           <div class="title">Today's schedule</div>
           <div class="next">${this.nextChangeText
             ? html`Next change <strong>${this.nextChangeText}</strong>`
-            : 'No upcoming changes'}</div>
+            : 'No further changes today'}</div>
         </div>
         <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px">
           ${z.presetModes.map((p) => html`

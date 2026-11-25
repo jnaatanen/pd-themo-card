@@ -43,5 +43,6 @@ export function formatChangeTime(at: Date, now: Date): string {
 // "18:00 → 19°" from the 0.5.0 next-change sensor fields; null when either is missing.
 export function nextChangeText(z: ZoneViewModel, now: Date = new Date()): string | null {
   if (z.nextChangeAt === null || z.nextChangeTemp === null) return null;
+  if (z.nextChangeAt.getTime() <= now.getTime()) return null;
   return `${formatChangeTime(z.nextChangeAt, now)} → ${z.nextChangeTemp}°`;
 }
