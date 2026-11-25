@@ -38,8 +38,10 @@ Use it entirely at your own risk. See [LICENSE](LICENSE) for the full terms.
 - Home Assistant 2025.1.0 or newer.
 - The [`pd_hathemo`](https://github.com/jnaatanen/pd-hathemo) integration installed,
   configured, and exposing at least one `climate.*` thermostat. The child lock, price
-  limit and offline features need integration **0.4.0+** — with an older integration
-  those controls simply stay hidden.
+  limit and offline features need integration **0.4.0+**; the schedule-target display
+  (what an Auto zone is aiming at, and cross-day "next change") needs **0.5.0+** — with
+  an older integration those features simply stay hidden and Auto zones show a plain
+  green **A**.
 
 ## Installation
 
@@ -114,7 +116,8 @@ The `pd_hathemo` integration names entities after each thermostat's device. The 
 2. For each thermostat, resolves the sibling entities on the **same device** — room /
    floor / outside temperature, the heating binary sensor, the backlight light, the
    daily-heating sensor, and (with pd_hathemo 0.4.0+) the child-lock switch, the
-   price-limit number and the cloud-connection sensor.
+   price-limit number and the cloud-connection sensor, and (with pd_hathemo 0.5.0+) the
+   scheduled-temperature and next-schedule-change sensors.
 3. Reads the device's heating **schedules** through the integration's
    `pd_hathemo/schedules` websocket command (the weekly setpoint grid) to draw the
    schedule heatmap and the "next change" readout, and switches the active schedule via
@@ -126,8 +129,10 @@ The `pd_hathemo` integration names entities after each thermostat's device. The 
   live "heating" accent), with house-average and active-zone stats.
 - **Detail panel** — temperature ring, setpoint stepper (Heat mode), Off / Heat / Auto
   mode tiles, room/floor sensor and daily-heating readouts, tappable backlight toggle.
-- **Schedules** — today's setpoint heatmap, "next change → temp", and one-tap switching
-  of the active schedule (Home / Away / …) via climate presets.
+- **Schedules** — Auto zones show the active schedule's current target next to the green
+  **A** (`→ A 22°`) on every tile and in the detail views, with the schedule's name and
+  the next change (`18:00 → 19°`, cross-day aware); plus today's setpoint heatmap and
+  one-tap switching of the active schedule (Home / Away / …) via climate presets.
 - **Child lock & price limit** — toggle the device's button lock and adjust Themo's
   electricity price limit (0.5 c/kWh steps) from the detail panel, bottom sheet or tablet
   focus card; locked zones carry a small lock icon on their tile.
