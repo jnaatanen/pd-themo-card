@@ -70,7 +70,7 @@ export class ThemoZoneRow extends LitElement {
           })()}</div>
         </div>
         <div class="now">${z.currentTemp ?? '—'}<span class="u">°</span><span class="tgt">→ ${z.targetTemp !== null ? html`${z.targetTemp}°`
-          : z.mode === 'auto' ? html`<span class="auto-a">A</span>` : '—'}</span></div>
+          : z.mode === 'auto' ? html`<span class="auto-a">A</span>${z.scheduledTemp !== null ? html` ${z.scheduledTemp}°` : ''}` : '—'}</span></div>
         <div class="mp"></div>
       </div>`;
   }
