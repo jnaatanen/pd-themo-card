@@ -1,4 +1,4 @@
-import type { Schedule, ScheduleData, NextChange } from './types';
+import type { Schedule, ScheduleData, NextChange, ZoneViewModel } from './types';
 
 export function activeSchedule(data: ScheduleData | null): Schedule | null {
   if (!data) return null;
@@ -28,4 +28,20 @@ export function nextChange(schedule: Schedule, day: number, hour: number): NextC
     if (row[h] !== null && row[h] !== cur) return { hour: h, value: row[h] as number };
   }
   return null;
+}
+
+const WEEKDAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+
+// "18:00" when `at` falls on the same local calendar day as `now`, else "Thu 06:00".
+export function formatChangeTime(at: Date, now: Date): string {
+  const hm = `${String(at.getHours()).padStart(2, '0')}:${String(at.getMinutes()).padStart(2, '0')}`;
+  const sameDay = at.getFullYear() === now.getFullYear()
+    && at.getMonth() === now.getMonth() && at.getDate() === now.getDate();
+  return sameDay ? hm : `${WEEKDAYS[at.getDay()]} ${hm}`;
+}
+
+// "18:00 → 19°" from the 0.5.0 next-change sensor fields; null when either is missing.
+export function nextChangeText(z: ZoneViewModel, now: Date = new Date()): string | null {
+  if (z.nextChangeAt === null || z.nextChangeTemp === null) return null;
+  return `${formatChangeTime(z.nextChangeAt, now)} → ${z.nextChangeTemp}°`;
 }
