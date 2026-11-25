@@ -3,6 +3,7 @@ import { customElement, property } from 'lit/decorators.js';
 import { tokens } from '../styles/tokens';
 import { shared } from '../styles/shared';
 import { zoneStatus, LOCK_ICON, CLOUD_OFF_ICON } from './zone-row';
+import { nextChangeText } from '../model/schedule';
 import type { ZoneViewModel } from '../model/types';
 
 const MODE_LABEL: Record<string, string> = { off: 'Off', heat: 'Heat', auto: 'Auto' };
@@ -44,13 +45,14 @@ export class ThemoZoneTile extends LitElement {
         <div class="zone-temp">
           <div class="now">${z.currentTemp ?? '—'}<span class="unit">°</span></div>
           <div class="target">→ <span>${z.targetTemp !== null ? html`${z.targetTemp}°`
-            : z.mode === 'auto' ? html`<span class="auto-a">A</span>` : '—'}</span></div>
+            : z.mode === 'auto' ? html`<span class="auto-a">A</span>${z.scheduledTemp !== null ? html` ${z.scheduledTemp}°` : ''}` : '—'}</span></div>
         </div>
         <div class="zone-meta">${(() => {
           const st = zoneStatus(z, this.spot);
           if (st.kind === 'offline') return html`<span class="offl">${CLOUD_OFF_ICON}${st.text}</span>`;
           if (st.kind === 'cap') return html`<span class="cap">${st.text}</span>`;
-          return html`${z.heating ? html`<span class="st-heat">heating</span>` : 'idle'}${z.heatingTodayPct !== null ? html` · <span class="pct">${z.heatingTodayPct}% today</span>` : ''}`;
+          const nc = st.kind === 'plain' && z.mode === 'auto' ? nextChangeText(z) : null;
+          return html`${z.heating ? html`<span class="st-heat">heating</span>` : 'idle'}${z.heatingTodayPct !== null ? html` · <span class="pct">${z.heatingTodayPct}% today</span>` : ''}${nc ? ` · ${nc}` : ''}`;
         })()}</div>
         <div class="zone-foot">
           <button class="mode-pill ${z.mode}"><span class="swatch"></span>${MODE_LABEL[z.mode]}</button>
