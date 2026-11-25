@@ -3,6 +3,7 @@ import { customElement, property } from 'lit/decorators.js';
 import { tokens } from '../styles/tokens';
 import { tablet } from '../styles/tablet';
 import { zoneStatus, LOCK_ICON, CLOUD_OFF_ICON } from './zone-row';
+import { nextChangeText } from '../model/schedule';
 import type { ZoneViewModel, ThemoMode } from '../model/types';
 
 const MODE_LABEL: Record<ThemoMode, string> = { off: 'Off', heat: 'Heat', auto: 'Auto' };
@@ -58,13 +59,14 @@ export class ThemoTabletTile extends LitElement {
             ${delta ? html`<div class="delta ${delta.cool ? 'cool' : ''}">${delta.text}</div>` : ''}
           </div>
           <div class="target-line">→ <span class="target">${z.targetTemp !== null ? html`${z.targetTemp}°`
-            : z.mode === 'auto' ? html`<span class="auto-a">A</span>` : '—'}</span>${z.targetTemp !== null ? ' setpoint' : ''}</div>
+            : z.mode === 'auto' ? html`<span class="auto-a">A</span>${z.scheduledTemp !== null ? html` ${z.scheduledTemp}°` : ''}` : '—'}</span>${z.targetTemp !== null ? ' setpoint' : z.mode === 'auto' && z.scheduledTemp !== null ? ' schedule' : ''}</div>
           <div class="meta-line">${(() => {
             const st = zoneStatus(z, this.spot);
             if (st.kind === 'offline') return html`<span class="offl">${CLOUD_OFF_ICON}${st.text}</span>`;
             if (st.kind === 'heating') return html`<span class="st-heat">heating</span>${st.pct !== null ? html` · <span class="pct">${st.pct}% today</span>` : ''}`;
             if (st.kind === 'cap') return html`<span class="cap">${st.text}</span>`;
-            return st.text;
+            const nc = st.kind === 'plain' && z.mode === 'auto' ? nextChangeText(z) : null;
+            return html`${st.text}${nc ? ` · ${nc}` : ''}`;
           })()}</div>
         </div>
       </div>`;
