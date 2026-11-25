@@ -19,6 +19,8 @@ const MODES: { mode: ThemoMode; name: string; icon: ReturnType<typeof svg> }[] =
 export class ThemoMobileSheet extends LitElement {
   static styles = [tokens, mobile, css`
     :host{display:contents;} .auto-a { color: var(--ok); font-weight: 600; }
+    .stepper.auto { display: flex; align-items: center; justify-content: center; }
+    .stepper.auto .val { border: 0; display: flex; align-items: baseline; gap: 5px; }
     .mini-step { display: inline-flex; align-items: center; gap: 8px; }
     .mini-step button { width: 22px; height: 22px; border-radius: 6px; border: 1px solid var(--border-2); background: var(--surface-3); color: var(--accent); font-size: 14px; line-height: 1; cursor: pointer; padding: 0; }
     .mini-step button:disabled { opacity: .4; cursor: default; }
@@ -91,13 +93,17 @@ export class ThemoMobileSheet extends LitElement {
           </div>
           <div class="target-stack">
             <div>
-              <div class="lbl">Setpoint</div>
+              <div class="lbl">${z.mode === 'auto' ? `Target${z.scheduleName ? ` · ${z.scheduleName}` : ''}` : 'Setpoint'}</div>
+              ${z.mode === 'auto' ? html`
+              <div class="stepper auto" data-auto-target>
+                <div class="val"><span class="auto-a">A</span>${z.scheduledTemp !== null ? html`${z.scheduledTemp}<span class="u">°C</span>` : ''}</div>
+              </div>`
+              : html`
               <div class="stepper">
                 <button data-step-dn @click=${() => this.bump(-z.step)} ?disabled=${z.mode !== 'heat'}>−</button>
-                <div class="val">${z.targetTemp !== null ? html`${z.targetTemp}<span class="u">°C</span>`
-                  : z.mode === 'auto' ? html`<span class="auto-a">A</span>` : html`—<span class="u">°C</span>`}</div>
+                <div class="val">${z.targetTemp !== null ? html`${z.targetTemp}<span class="u">°C</span>` : html`—<span class="u">°C</span>`}</div>
                 <button data-step-up @click=${() => this.bump(z.step)} ?disabled=${z.mode !== 'heat'}>+</button>
-              </div>
+              </div>`}
             </div>
           </div>
         </div>
