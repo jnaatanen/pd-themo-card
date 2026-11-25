@@ -4,7 +4,7 @@ import type { HomeAssistant } from 'custom-card-helpers';
 import { tokens } from './styles/tokens';
 import { parseConfig } from './model/config';
 import { discoverZones, buildZoneViewModel } from './model/zone-model';
-import { activeSchedule, todayRow, nextChange } from './model/schedule';
+import { activeSchedule, todayRow, nextChange, nextChangeText } from './model/schedule';
 import { ScheduleService } from './schedule-service';
 import { setTemperature, setMode, setPreset, toggleBacklight, runQuickAction, toggleChildLock, setPriceLimit } from './actions';
 import type { CardConfig, ScheduleData, ZoneViewModel } from './model/types';
@@ -152,9 +152,10 @@ export class ThemoCard extends LitElement {
     const nc = sched ? nextChange(sched, day, nowHour) : null;
     const outsideText = outside !== null ? `${outside}°C` : null;
     const spot = this.spotNumber();
+    const wsNcText = nc ? `${String(nc.hour).padStart(2, '0')}:00 → ${nc.value}°` : null;
+    const selNcText = sel ? (nextChangeText(sel, new Date()) ?? wsNcText) : null;
 
     if (this.effectiveLayout() === 'mobile') {
-      const ncText = nc ? `${String(nc.hour).padStart(2, '0')}:00 → ${nc.value}°` : null;
       return html`
         <themo-mobile-view
           .zones=${zones} .quickActions=${this.config.quick_actions} .outsideText=${outsideText} .spot=${spot}
@@ -164,7 +165,7 @@ export class ThemoCard extends LitElement {
           @quick-action=${(e: CustomEvent) => runQuickAction(this._hass, (e.detail as { action: Parameters<typeof runQuickAction>[1] }).action)}
         ></themo-mobile-view>
         ${this.sheetOpen && sel && (this.selectedId === null || sel.climateEntityId === this.selectedId) ? html`<themo-mobile-sheet
-          .zone=${sel} .nextChangeText=${ncText}
+          .zone=${sel} .nextChangeText=${selNcText}
           @sheet-close=${() => { this.sheetOpen = false; }}
           @setpoint-change=${(e: CustomEvent) => setTemperature(this._hass, sel.climateEntityId, (e.detail as { temperature: number }).temperature)}
           @mode-change=${(e: CustomEvent) => setMode(this._hass, sel.climateEntityId, (e.detail as { mode: Parameters<typeof setMode>[2] }).mode)}
@@ -205,7 +206,7 @@ export class ThemoCard extends LitElement {
         ></themo-overview>
         <div class="right-col">
           ${sel ? html`<themo-detail
-            .zone=${sel} .todayRow=${row} .nextChange=${nc} .nowHour=${nowHour} .step=${this.config.step}
+            .zone=${sel} .todayRow=${row} .nextChangeText=${selNcText} .nowHour=${nowHour} .step=${this.config.step}
             @setpoint-change=${(e: CustomEvent) => setTemperature(this._hass, sel.climateEntityId, (e.detail as { temperature: number }).temperature)}
             @mode-change=${(e: CustomEvent) => setMode(this._hass, sel.climateEntityId, (e.detail as { mode: Parameters<typeof setMode>[2] }).mode)}
             @preset-change=${(e: CustomEvent) => this.onPreset(sel, (e.detail as { preset: string }).preset)}

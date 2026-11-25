@@ -4,7 +4,7 @@ import { tokens } from '../styles/tokens';
 import { shared } from '../styles/shared';
 import { ringOffset, clampSetpoint, RING_CIRCUMFERENCE, stepPrice, PRICE_STEP } from '../model/zone-model';
 import { LOCK_ICON, CLOUD_OFF_ICON } from './zone-row';
-import type { ZoneViewModel, NextChange, ThemoMode } from '../model/types';
+import type { ZoneViewModel, ThemoMode } from '../model/types';
 
 const MODES: { mode: ThemoMode; name: string; desc: string }[] = [
   { mode: 'off', name: 'Off', desc: 'power off' },
@@ -17,6 +17,8 @@ export class ThemoDetail extends LitElement {
   static styles = [tokens, shared, css`
     :host{display:block;}
     .auto-a { color: var(--ok); font-weight: 600; }
+    .stepper.auto { display: flex; align-items: center; justify-content: center; }
+    .stepper.auto .val { border: 0; display: flex; align-items: baseline; gap: 6px; }
     .mini-step { display: inline-flex; align-items: center; gap: 8px; }
     .mini-step button { width: 22px; height: 22px; border-radius: 6px; border: 1px solid var(--border-2); background: var(--surface-3); color: var(--accent); font-size: 14px; line-height: 1; cursor: pointer; padding: 0; }
     .mini-step button:disabled { opacity: .4; cursor: default; }
@@ -26,7 +28,7 @@ export class ThemoDetail extends LitElement {
   `];
   @property({ attribute: false }) zone!: ZoneViewModel;
   @property({ attribute: false }) todayRow: (number | null)[] | null = null;
-  @property({ attribute: false }) nextChange: NextChange | null = null;
+  @property() nextChangeText: string | null = null;
   @property({ type: Number }) nowHour = 0;
   @property({ type: Number }) step = 0.5;
 
@@ -93,13 +95,17 @@ export class ThemoDetail extends LitElement {
           </div>
           <div class="target-col">
             <div>
-              <div class="label">Setpoint</div>
+              <div class="label">${z.mode === 'auto' ? `Target${z.scheduleName ? ` · ${z.scheduleName}` : ''}` : 'Setpoint'}</div>
+              ${z.mode === 'auto' ? html`
+              <div class="stepper auto" data-auto-target>
+                <div class="val"><span class="auto-a">A</span>${z.scheduledTemp !== null ? html`<span>${z.scheduledTemp}</span><span class="unit">°C</span>` : ''}</div>
+              </div>`
+              : html`
               <div class="stepper">
                 <button data-step-dn @click=${() => this.bump(-z.step)} ?disabled=${z.mode !== 'heat'}>−</button>
-                <div class="val">${z.targetTemp !== null ? html`<span>${z.targetTemp}</span><span class="unit">°C</span>`
-                  : z.mode === 'auto' ? html`<span class="auto-a">A</span>` : html`<span>—</span><span class="unit">°C</span>`}</div>
+                <div class="val">${z.targetTemp !== null ? html`<span>${z.targetTemp}</span><span class="unit">°C</span>` : html`<span>—</span><span class="unit">°C</span>`}</div>
                 <button data-step-up @click=${() => this.bump(z.step)} ?disabled=${z.mode !== 'heat'}>+</button>
-              </div>
+              </div>`}
             </div>
           </div>
         </div>
@@ -151,9 +157,9 @@ export class ThemoDetail extends LitElement {
       <div class="schedule">
         <div class="schedule-head">
           <div class="title">Today's schedule</div>
-          <div class="next">${this.nextChange
-            ? html`Next change <strong>${String(this.nextChange.hour).padStart(2, '0')}:00 → ${this.nextChange.value}°</strong>`
-            : 'No further changes today'}</div>
+          <div class="next">${this.nextChangeText
+            ? html`Next change <strong>${this.nextChangeText}</strong>`
+            : 'No upcoming changes'}</div>
         </div>
         <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px">
           ${z.presetModes.map((p) => html`
