@@ -52,6 +52,10 @@ export interface ZoneViewModel {
   priceLimitEntityId: string | null;  // number sibling (_price_limit)
   priceLimit: number | null;          // c/kWh
   connected: boolean | null;          // binary_sensor sibling (_connection); null = no sensor
+  scheduledTemp: number | null;   // sensor sibling (_scheduled_temperature), Auto schedule's current-hour setpoint
+  scheduleName: string | null;    // that sensor's `schedule` attribute
+  nextChangeAt: Date | null;      // sensor sibling (_next_schedule_change), timestamp state
+  nextChangeTemp: number | null;  // that sensor's `temperature` attribute (only with a valid timestamp)
 }
 
 export type ZoneStatusKind = 'offline' | 'heating' | 'cap' | 'plain';

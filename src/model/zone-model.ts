@@ -88,12 +88,24 @@ export function buildZoneViewModel(
   const childLockId = sibling(hass, deviceId, 'switch', 'child_lock', true);
   const priceLimitId = sibling(hass, deviceId, 'number', 'price_limit', true);
   const connectionId = sibling(hass, deviceId, 'binary_sensor', 'connection', true);
+  const schedTempId = sibling(hass, deviceId, 'sensor', 'scheduled_temperature', true);
+  const nextChangeId = sibling(hass, deviceId, 'sensor', 'next_schedule_change', true);
 
   const stateOf = (id: string | null) => (id ? hass.states[id] : undefined);
   const triState = (id: string | null): boolean | null => {
     const s = stateOf(id)?.state;
     return s === 'on' ? true : s === 'off' ? false : null;
   };
+
+  const schedAttrs = stateOf(schedTempId)?.attributes as Record<string, unknown> | undefined;
+  const schedName = schedAttrs?.schedule;
+  const ncState = stateOf(nextChangeId);
+  let nextChangeAt: Date | null = null;
+  const ncRaw = ncState?.state;
+  if (ncRaw && ncRaw !== 'unknown' && ncRaw !== 'unavailable') {
+    const d = new Date(ncRaw);
+    if (!Number.isNaN(d.getTime())) nextChangeAt = d;
+  }
 
   return {
     climateEntityId,
@@ -119,5 +131,11 @@ export function buildZoneViewModel(
     priceLimitEntityId: priceLimitId,
     priceLimit: num(stateOf(priceLimitId)?.state),
     connected: triState(connectionId),
+    scheduledTemp: num(stateOf(schedTempId)?.state),
+    scheduleName: typeof schedName === 'string' && schedName !== '' ? schedName : null,
+    nextChangeAt,
+    nextChangeTemp: nextChangeAt !== null
+      ? num((ncState?.attributes as Record<string, unknown> | undefined)?.temperature)
+      : null,
   };
 }
