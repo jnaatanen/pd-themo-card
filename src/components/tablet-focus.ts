@@ -4,6 +4,7 @@ import { tokens } from '../styles/tokens';
 import { tablet } from '../styles/tablet';
 import { ringOffset, clampSetpoint, stepPrice, PRICE_STEP, RING_CIRCUMFERENCE } from '../model/zone-model';
 import { LOCK_ICON, CLOUD_OFF_ICON } from './zone-row';
+import { nextChangeText } from '../model/schedule';
 import type { ZoneViewModel, ThemoMode } from '../model/types';
 
 const FOCUS_R = 80;
@@ -28,6 +29,9 @@ export class ThemoTabletFocus extends LitElement {
     }
     .pchip.active { background: rgba(3,169,244,0.12); border-color: rgba(3,169,244,0.5); color: var(--accent); }
     .auto-a { color: var(--ok); font-weight: 600; }
+    .stepper.auto { display: flex; align-items: center; justify-content: center; }
+    .stepper.auto .val { border: 0; display: flex; align-items: baseline; gap: 6px; }
+    .next-line { margin-top: 10px; text-align: center; font-size: 12px; color: var(--fg-soft); }
     .dev-row { margin-top: 12px; display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
     .dev-chip { display: inline-flex; align-items: center; gap: 6px; height: 32px; padding: 0 12px; border-radius: 999px; border: 1px solid var(--border-2); background: var(--surface-2); color: var(--fg-soft); font-size: 12px; font-family: inherit; cursor: pointer; }
     .dev-chip svg { width: 14px; height: 14px; }
@@ -96,12 +100,20 @@ export class ThemoTabletFocus extends LitElement {
             <div class="cap">Room</div>
           </div></div>
         </div>
+        ${z.mode === 'auto' ? html`
+        <div class="stepper auto" data-auto-target>
+          <div class="val"><span class="auto-a">A</span>${z.scheduledTemp !== null ? html`${z.scheduledTemp}<span class="u">°C</span>` : ''}</div>
+        </div>
+        ${(() => {
+          const t = nextChangeText(z);
+          return t ? html`<div class="next-line">${z.scheduleName ? `${z.scheduleName} schedule · next ${t}` : `Next ${t}`}</div>` : '';
+        })()}`
+        : html`
         <div class="stepper">
           <button data-step-dn @click=${() => this.bump(-z.step)} ?disabled=${z.mode !== 'heat'}>−</button>
-          <div class="val">${z.targetTemp !== null ? html`${z.targetTemp}<span class="u">°C</span>`
-            : z.mode === 'auto' ? html`<span class="auto-a">A</span>` : html`—<span class="u">°C</span>`}</div>
+          <div class="val">${z.targetTemp !== null ? html`${z.targetTemp}<span class="u">°C</span>` : html`—<span class="u">°C</span>`}</div>
           <button data-step-up @click=${() => this.bump(z.step)} ?disabled=${z.mode !== 'heat'}>+</button>
-        </div>
+        </div>`}
         <div class="mode-row">
           ${MODES.map((m) => html`
             <div class="mode-tile ${z.mode === m.mode ? 'selected' : ''}" data-mode=${m.mode}
